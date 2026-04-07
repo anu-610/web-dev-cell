@@ -2,7 +2,10 @@
 node_modules/
 __pycache__/
 *.pyc
+*.pyo
 dist/
 .venv/
 *.log
 .DS_Store
+# Docker volumes persisted locally
+postgres_data/
