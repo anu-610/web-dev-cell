@@ -1,0 +1,75 @@
+import uuid
+from datetime import datetime
+
+from pydantic import BaseModel, HttpUrl, ConfigDict
+
+
+# ── Member ────────────────────────────────────────────────────────────────────
+
+class MemberBase(BaseModel):
+    name: str
+    role: str
+    bio: str | None = None
+    year: int | None = None
+    github_url: str | None = None
+    linkedin_url: str | None = None
+    avatar_url: str | None = None
+    is_active: bool = True
+
+
+class MemberCreate(MemberBase):
+    supabase_uid: str | None = None
+
+
+class MemberUpdate(BaseModel):
+    name: str | None = None
+    role: str | None = None
+    bio: str | None = None
+    year: int | None = None
+    github_url: str | None = None
+    linkedin_url: str | None = None
+    avatar_url: str | None = None
+    is_active: bool | None = None
+
+
+class MemberOut(MemberBase):
+    id: uuid.UUID
+    supabase_uid: str | None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ── Project ───────────────────────────────────────────────────────────────────
+
+class ProjectBase(BaseModel):
+    title: str
+    description: str | None = None
+    tags: str | None = None
+    github_url: str | None = None
+    live_url: str | None = None
+    featured: bool = False
+    is_active: bool = True
+
+
+class ProjectCreate(ProjectBase):
+    pass
+
+
+class ProjectUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    tags: str | None = None
+    github_url: str | None = None
+    live_url: str | None = None
+    featured: bool | None = None
+    is_active: bool | None = None
+
+
+class ProjectOut(ProjectBase):
+    id: uuid.UUID
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
