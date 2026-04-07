@@ -27,8 +27,8 @@ export default function SectionTitle({ eyebrow, title, highlight, subtitle, alig
       className={`flex flex-col gap-3 ${alignCls}`}
     >
       {eyebrow && <span className="text-xs font-mono tracking-[0.25em] uppercase text-cyan-400/80">{eyebrow}</span>}
-      <h2 className="text-4xl md:text-5xl font-black text-white leading-tight" dangerouslySetInnerHTML={{ __html: rendered }} />
-      {subtitle && <p className="text-slate-400 text-lg max-w-2xl mt-1">{subtitle}</p>}
+      <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight" dangerouslySetInnerHTML={{ __html: rendered }} />
+      {subtitle && <p className="text-slate-400 text-base sm:text-lg max-w-2xl mt-1">{subtitle}</p>}
       <motion.div
         initial={{ scaleX: 0 }}
         animate={inView ? { scaleX: 1 } : {}}

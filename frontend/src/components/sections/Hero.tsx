@@ -16,7 +16,7 @@ export default function Hero() {
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
   return (
-    <section id="hero" className="relative h-screen overflow-hidden flex items-center justify-center">
+    <section id="hero" className="relative h-screen min-h-[600px] overflow-hidden flex items-center justify-center">
       {/* Three.js canvas */}
       <Suspense fallback={null}>
         <HeroScene />
@@ -25,14 +25,14 @@ export default function Hero() {
       {/* Vignette gradient so text stays readable */}
       <div className="absolute inset-0 bg-gradient-radial from-transparent via-void-950/30 to-void-950/80 pointer-events-none" />
 
-      <div className="relative z-10 flex flex-col items-center text-center px-4 max-w-5xl mx-auto">
+      <div className="relative z-10 flex flex-col items-center text-center px-4 w-full max-w-5xl mx-auto">
         {/* Badge */}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="mb-6"
+          className="mb-5"
         >
-          <span className="inline-flex items-center gap-2 glass px-4 py-2 rounded-full text-xs font-mono text-cyan-400 tracking-widest uppercase">
+          <span className="inline-flex items-center gap-2 glass px-3 py-1.5 rounded-full text-xs font-mono text-cyan-400 tracking-widest uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             KamandPrompt · IIT Mandi
           </span>
@@ -42,7 +42,7 @@ export default function Hero() {
         <motion.h1
           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.5 }}
-          className="text-6xl sm:text-7xl md:text-8xl font-black text-white leading-[0.95] tracking-tight mb-6"
+          className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white leading-[0.95] tracking-tight mb-5"
         >
           Web{' '}
           <span className="gradient-text">Dev</span>
@@ -54,24 +54,24 @@ export default function Hero() {
         <motion.p
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.75 }}
-          className="text-slate-400 text-lg md:text-xl max-w-xl mb-10 leading-relaxed"
+          className="text-slate-400 text-base sm:text-lg md:text-xl max-w-xl mb-8 leading-relaxed"
         >
           Building the internet, one commit at a time.
           <br />
-          <span className="text-slate-500 text-base font-mono">Full-stack · 3D · Open Source</span>
+          <span className="text-slate-500 text-sm sm:text-base font-mono">Full-stack · 3D · Open Source</span>
         </motion.p>
 
         {/* CTAs */}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 1.0 }}
-          className="flex flex-wrap items-center justify-center gap-4"
+          className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full sm:w-auto"
         >
-          <NeonButton size="lg" onClick={() => go('projects')}>
-            <Globe size={18} /> Explore Projects
+          <NeonButton size="md" className="w-full sm:w-auto" onClick={() => go('projects')}>
+            <Globe size={17} /> Explore Projects
           </NeonButton>
-          <NeonButton size="lg" variant="outline" onClick={() => go('team')}>
-            Meet the Team <ArrowRight size={18} />
+          <NeonButton size="md" variant="outline" className="w-full sm:w-auto" onClick={() => go('team')}>
+            Meet the Team <ArrowRight size={17} />
           </NeonButton>
         </motion.div>
 
@@ -79,7 +79,7 @@ export default function Hero() {
         <motion.div
           initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.4 }}
-          className="flex flex-wrap justify-center gap-8 mt-16"
+          className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-4 mt-12 sm:mt-16"
         >
           {STATS.map((s, i) => (
             <motion.div
@@ -88,7 +88,7 @@ export default function Hero() {
               transition={{ delay: 1.4 + i * 0.1 }}
               className="text-center"
             >
-              <div className="text-3xl font-black gradient-text">{s.value}</div>
+              <div className="text-2xl sm:text-3xl font-black gradient-text">{s.value}</div>
               <div className="text-xs text-slate-500 tracking-wider uppercase mt-1">{s.label}</div>
             </motion.div>
           ))}

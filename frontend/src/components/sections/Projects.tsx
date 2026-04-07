@@ -17,7 +17,7 @@ function Tag({ t }: { t: string }) {
 
 function ProjectCard({ p }: { p: Project }) {
   return (
-    <motion.div variants={item} className={p.featured ? 'md:col-span-2' : ''}>
+    <motion.div variants={item} className={p.featured ? 'sm:col-span-2 md:col-span-2' : ''}>
       <GlassCard glow={p.featured ? 'violet' : 'none'} className="flex flex-col h-full relative overflow-hidden">
         {p.featured && (
           <div className="absolute top-4 right-4 flex items-center gap-1 text-xs text-violet-400 font-mono">
@@ -60,7 +60,7 @@ export default function Projects() {
   const displayed = filter === 'featured' ? PROJECTS.filter(p => p.featured) : PROJECTS
 
   return (
-    <section id="projects" className="py-28 section-pad relative bg-grid">
+    <section id="projects" className="py-16 sm:py-20 md:py-28 section-pad relative bg-grid">
       <div className="absolute bottom-0 left-1/4 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="max-w-7xl mx-auto">
         <SectionTitle
@@ -88,7 +88,7 @@ export default function Projects() {
         <motion.div
           key={filter}
           variants={container} initial="hidden" animate="show"
-          className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6"
+          className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
         >
           {displayed.map(p => <ProjectCard key={p.id} p={p} />)}
         </motion.div>

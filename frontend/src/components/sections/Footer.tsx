@@ -10,7 +10,7 @@ export default function Footer() {
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
   return (
-    <footer id="contact" className="relative border-t border-white/5 pt-16 pb-8 section-pad overflow-hidden">
+    <footer id="contact" className="relative border-t border-white/5 pt-12 sm:pt-16 pb-8 section-pad overflow-hidden">
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-40 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">

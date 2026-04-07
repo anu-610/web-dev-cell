@@ -53,7 +53,7 @@ function MemberCard({ m }: { m: TeamMember }) {
 
 export default function Team() {
   return (
-    <section id="team" className="py-28 section-pad relative">
+    <section id="team" className="py-16 sm:py-20 md:py-28 section-pad relative">
       <div className="absolute top-0 right-0 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="max-w-7xl mx-auto">
         <SectionTitle
