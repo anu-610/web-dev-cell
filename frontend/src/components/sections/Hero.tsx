@@ -16,7 +16,7 @@ export default function Hero() {
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 
   return (
-    <section id="hero" className="relative h-screen min-h-[600px] overflow-hidden flex items-center justify-center">
+    <section id="hero" className="relative w-full h-screen min-h-[600px] overflow-hidden flex items-center justify-center">
       {/* Three.js canvas */}
       <Suspense fallback={null}>
         <HeroScene />
