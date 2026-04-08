@@ -1,10 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, type Variants } from 'framer-motion'
 import { GitBranch, ExternalLink, Star } from 'lucide-react'
-import { PROJECTS, type Project } from '@/data/projects'
 import GlassCard from '@/components/ui/GlassCard'
 import SectionTitle from '@/components/ui/SectionTitle'
 import NeonButton from '@/components/ui/NeonButton'
+import { apiFetch } from '@/lib/api'
+
+export interface Project {
+  id: string
+  title: string
+  description: string
+  tags: string
+  github_url?: string
+  live_url?: string
+  featured: boolean
+}
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.12 } } }
 const item: Variants = { hidden: { opacity: 0, y: 40 }, show: { opacity: 1, y: 0, transition: { duration: 0.65, ease: 'easeOut' as const } } }
@@ -16,6 +26,8 @@ function Tag({ t }: { t: string }) {
 }
 
 function ProjectCard({ p }: { p: Project }) {
+  const tagList = p.tags ? p.tags.split(',').map(t => t.trim()) : []
+
   return (
     <motion.div variants={item} className={p.featured ? 'sm:col-span-2 md:col-span-2' : ''}>
       <GlassCard glow={p.featured ? 'violet' : 'none'} className="flex flex-col h-full relative overflow-hidden">
@@ -30,8 +42,8 @@ function ProjectCard({ p }: { p: Project }) {
         <div className="flex-1 flex flex-col">
           <h3 className="text-white font-bold text-xl mb-2 leading-snug">{p.title}</h3>
           <p className="text-slate-400 text-sm leading-relaxed flex-1 mb-4">{p.description}</p>
-          {p.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-5">{p.tags.map(t => <Tag key={t} t={t} />)}</div>
+          {tagList.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-5">{tagList.map(t => <Tag key={t} t={t} />)}</div>
           )}
           <div className="flex gap-3 mt-auto">
             {p.github_url && (
@@ -56,8 +68,18 @@ function ProjectCard({ p }: { p: Project }) {
 type Filter = 'all' | 'featured'
 
 export default function Projects() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
-  const displayed = filter === 'featured' ? PROJECTS.filter(p => p.featured) : PROJECTS
+
+  useEffect(() => {
+    apiFetch<Project[]>('/projects')
+      .then(setProjects)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const displayed = filter === 'featured' ? projects.filter(p => p.featured) : projects
 
   return (
     <section id="projects" className="py-16 sm:py-20 md:py-28 section-pad relative bg-grid">
@@ -85,13 +107,19 @@ export default function Projects() {
           ))}
         </div>
 
-        <motion.div
-          key={filter}
-          variants={container} initial="hidden" animate="show"
-          className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
-        >
-          {displayed.map(p => <ProjectCard key={p.id} p={p} />)}
-        </motion.div>
+        {loading ? (
+          <div className="mt-12 text-center text-slate-500 font-mono animate-pulse">Loading projects...</div>
+        ) : projects.length === 0 ? (
+          <div className="mt-12 text-center text-slate-500 font-mono">No projects found.</div>
+        ) : (
+          <motion.div
+            key={filter}
+            variants={container} initial="hidden" animate="show"
+            className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
+          >
+            {displayed.map(p => <ProjectCard key={p.id} p={p} />)}
+          </motion.div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
