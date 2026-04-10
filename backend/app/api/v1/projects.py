@@ -12,7 +12,7 @@ from app.schemas.schemas import ProjectCreate, ProjectOut, ProjectUpdate
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 
-@router.get("/", response_model=list[ProjectOut])
+@router.get("", response_model=list[ProjectOut])
 async def list_projects(db: AsyncSession = Depends(get_db)):
     """Public — returns all active projects."""
     result = await db.execute(select(Project).where(Project.is_active.is_(True)))
@@ -27,7 +27,7 @@ async def get_project(project_id: uuid.UUID, db: AsyncSession = Depends(get_db))
     return project
 
 
-@router.post("/", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
 async def create_project(
     body: ProjectCreate,
     db: AsyncSession = Depends(get_db),

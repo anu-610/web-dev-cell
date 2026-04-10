@@ -12,7 +12,7 @@ from app.schemas.schemas import MemberCreate, MemberOut, MemberUpdate
 router = APIRouter(prefix="/members", tags=["members"])
 
 
-@router.get("/", response_model=list[MemberOut])
+@router.get("", response_model=list[MemberOut])
 async def list_members(db: AsyncSession = Depends(get_db)):
     """Public — returns all active members."""
     result = await db.execute(select(Member).where(Member.is_active.is_(True)))
@@ -27,7 +27,7 @@ async def get_member(member_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     return member
 
 
-@router.post("/", response_model=MemberOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=MemberOut, status_code=status.HTTP_201_CREATED)
 async def create_member(
     body: MemberCreate,
     db: AsyncSession = Depends(get_db),
