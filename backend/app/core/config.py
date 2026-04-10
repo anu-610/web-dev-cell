@@ -9,13 +9,14 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "db"
     POSTGRES_PORT: int = 5432
 
-    # Supabase — used only for JWT verification
-    SUPABASE_JWT_SECRET: str = "your-jwt-secret"
+    # Supabase — using the new Secret Key architecture
+    SUPABASE_URL: str = "https://your-project.supabase.co"
+    SUPABASE_SECRET_KEY: str = "your-secret-key"
 
     # CORS
     FRONTEND_URL: str = "http://localhost:5173"
 
-    model_config = SettingsConfigDict(env_file="../.env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     @property
     def database_url(self) -> str:

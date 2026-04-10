@@ -15,7 +15,7 @@ router = APIRouter(prefix="/members", tags=["members"])
 @router.get("/", response_model=list[MemberOut])
 async def list_members(db: AsyncSession = Depends(get_db)):
     """Public — returns all active members."""
-    result = await db.execute(select(Member).where(Member.is_active == True))
+    result = await db.execute(select(Member).where(Member.is_active.is_(True)))
     return result.scalars().all()
 
 
