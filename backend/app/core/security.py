@@ -1,43 +1,48 @@
+import httpx
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from supabase import create_client, Client
 
 from app.core.config import settings
 
 bearer_scheme = HTTPBearer()
 
-# Initialize Supabase client with the Service Role / Secret API Key
-supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SECRET_KEY)
 
-
-def verify_supabase_jwt(
+async def verify_supabase_jwt(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ) -> dict:
     """
     Validates a Supabase-issued JWT by asking the Supabase Auth API directly.
-    This works perfectly with the new Publishable/Secret key architecture.
-    Raises 401 if the token is missing or expired.
+    We use httpx instead of supabase-py to support the new sb_secret_... format
+    which the official python client currently rejects.
     """
     token = credentials.credentials
-    try:
-        # get_user() securely validates the token against the Supabase server
-        response = supabase.auth.get_user(token)
-        if not response.user:
-            raise ValueError("No user found")
+    url = f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1/user"
 
-        # Return the user object as a dictionary for downstream dependencies
-        return {
-            "sub": response.user.id,
-            "email": response.user.email,
-            "app_metadata": response.user.app_metadata,
-            "user_metadata": response.user.user_metadata,
-        }
-    except Exception as e:
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            url,
+            headers={
+                "apikey": settings.SUPABASE_SECRET_KEY,
+                "Authorization": f"Bearer {token}",
+            },
+        )
+
+    if response.status_code != 200:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid or expired token: {str(e)}",
+            detail="Invalid or expired token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    # The /auth/v1/user endpoint returns the user object natively
+    user_data = response.json()
+
+    return {
+        "sub": user_data.get("id"),
+        "email": user_data.get("email"),
+        "app_metadata": user_data.get("app_metadata", {}),
+        "user_metadata": user_data.get("user_metadata", {}),
+    }
 
 
 def require_admin(payload: dict = Depends(verify_supabase_jwt)) -> dict:
@@ -52,4 +57,5 @@ def require_admin(payload: dict = Depends(verify_supabase_jwt)) -> dict:
             detail="Admin access required",
         )
     return payload
+
 
