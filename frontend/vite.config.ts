@@ -10,6 +10,13 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    proxy: {
+      // Proxy /api/v1/* → FastAPI on port 8000 (eliminates CORS in dev)
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     rollupOptions: {
