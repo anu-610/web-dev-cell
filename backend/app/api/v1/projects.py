@@ -15,7 +15,7 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 @router.get("/", response_model=list[ProjectOut])
 async def list_projects(db: AsyncSession = Depends(get_db)):
     """Public — returns all active projects."""
-    result = await db.execute(select(Project).where(Project.is_active == True))
+    result = await db.execute(select(Project).where(Project.is_active.is_(True)))
     return result.scalars().all()
 
 
