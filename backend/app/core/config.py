@@ -13,8 +13,14 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = "https://your-project.supabase.co"
     SUPABASE_SECRET_KEY: str = "your-secret-key"
 
-    # CORS
-    FRONTEND_URL: str = "http://localhost:5173"
+    # CORS — comma-separated list of allowed origins
+    # e.g. ALLOWED_ORIGINS=http://localhost:5173,https://webdevcell.iitmandi.ac.in
+    ALLOWED_ORIGINS: str = "http://localhost:5173"
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Parse ALLOWED_ORIGINS into a stripped list. Handles CRLF .env files."""
+        return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
