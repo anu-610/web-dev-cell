@@ -124,6 +124,26 @@ class Post(Base):
     )
 
 
+class Announcement(Base):
+    """Global site announcements / popups."""
+
+    __tablename__ = "announcements"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    link_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    end_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+
 class ProjectMember(Base):
     """Association table linking members to projects."""
 
