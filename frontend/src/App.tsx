@@ -3,12 +3,14 @@ import NavBar from '@/components/ui/NavBar'
 import Home from '@/pages/Home'
 import Login from '@/pages/admin/Login'
 import Dashboard from '@/pages/admin/Dashboard'
+import ThemeSwitcher from '@/components/hero/ThemeSwitcher'
 
 function PublicLayout() {
   return (
     <>
       <NavBar />
       <Home />
+      <ThemeSwitcher />
     </>
   )
 }
