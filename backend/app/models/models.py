@@ -106,6 +106,10 @@ class Post(Base):
     title: Mapped[str] = mapped_column(String(240), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False, comment="Rich HTML from Quill editor")
     author_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    author_id: Mapped[str | None] = mapped_column(
+        String(64), nullable=True, index=True,
+        comment="auth.users.id from Supabase (null for legacy posts)",
+    )
     category: Mapped[str] = mapped_column(
         String(80), nullable=False,
         comment="e.g. vulnerability, new-feature, tutorial, news",

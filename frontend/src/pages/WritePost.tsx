@@ -380,10 +380,10 @@ export default function WritePost() {
     return <div className="min-h-screen bg-void-950 pt-24 text-center text-cyan-400">Verifying session...</div>
   }
 
-  if (isEditMode && (!token || !isAdmin)) {
+  if (isEditMode && !token) {
     return (
       <div className="min-h-screen bg-void-950 pt-24 text-center text-red-400">
-        You do not have permission to edit this post.
+        You must be logged in to edit posts.
       </div>
     )
   }

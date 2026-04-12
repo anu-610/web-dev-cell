@@ -99,6 +99,7 @@ class PostOut(BaseModel):
     title: str
     content: str
     author_name: str
+    author_id: str | None = None
     category: str
     thumbnail_url: str
     status: str

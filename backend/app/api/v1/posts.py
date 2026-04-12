@@ -48,12 +48,14 @@ async def upload_thumbnail(file: UploadFile = File(...)):
 async def create_post(request: Request, body: PostCreate, db: AsyncSession = Depends(get_db)):
     """Any user can submit a post. It starts as 'pending' unless an admin creates it."""
     is_admin = False
+    author_id = None
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header.split(" ")[1]
         try:
             creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
             payload = await verify_supabase_jwt(creds)
+            author_id = payload.get("sub")
             role = (payload.get("app_metadata") or {}).get("role", "")
             if role == "admin":
                 is_admin = True
@@ -67,6 +69,7 @@ async def create_post(request: Request, body: PostCreate, db: AsyncSession = Dep
         title=body.title.strip(),
         content=body.content,
         author_name=body.author_name.strip(),
+        author_id=author_id,
         category=body.category.strip(),
         thumbnail_url=body.thumbnail_url,
         status="approved" if is_admin else "pending",
@@ -85,6 +88,26 @@ async def list_approved_posts(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Post)
         .where(Post.status == "approved")
+        .order_by(Post.created_at.desc())
+    )
+    return result.scalars().all()
+
+
+# ── Authenticated: List my posts ──────────────────────────────────────────────
+
+@router.get("/me", response_model=list[PostOut])
+async def list_my_posts(
+    db: AsyncSession = Depends(get_db),
+    payload: dict = Depends(verify_supabase_jwt),
+):
+    """Authenticated users — returns their own posts of any status."""
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User ID not found in token")
+
+    result = await db.execute(
+        select(Post)
+        .where(Post.author_id == user_id)
         .order_by(Post.created_at.desc())
     )
     return result.scalars().all()
@@ -112,7 +135,7 @@ async def admin_list_posts(
     return result.scalars().all()
 
 
-# ── Admin: Update post content/metadata ───────────────────────────────────────
+# ── User/Admin: Update post content/metadata ──────────────────────────────────
 
 from pydantic import BaseModel
 class PostAdminUpdate(BaseModel):
@@ -127,15 +150,25 @@ async def update_post(
     post_id: uuid.UUID,
     body: PostAdminUpdate,
     db: AsyncSession = Depends(get_db),
-    _: dict = Depends(require_admin),
+    payload: dict = Depends(verify_supabase_jwt),
 ):
-    """Admin — update post metadata and content."""
+    """Owner or Admin — update post metadata and content."""
     post = await db.get(Post, post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
+    user_id = payload.get("sub")
+    role = (payload.get("app_metadata") or {}).get("role", "")
+    is_admin = role == "admin"
+
+    if not is_admin and post.author_id != user_id:
+        raise HTTPException(status_code=403, detail="You do not have permission to edit this post")
+
     for field, value in body.model_dump(exclude_none=True).items():
         setattr(post, field, value)
+
+    if not is_admin:
+        post.status = "pending"
 
     await db.commit()
     await db.refresh(post)
