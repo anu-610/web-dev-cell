@@ -130,3 +130,10 @@
 }
 .terminal-cursor { animation: terminal-blink 1s step-end infinite; }
 
+/* ── Hide default cursor on desktop ─────────────────────── */
+@media (pointer: fine) {
+  body, a, button, input, select, textarea {
+    cursor: none !important;
+  }
+}
+
