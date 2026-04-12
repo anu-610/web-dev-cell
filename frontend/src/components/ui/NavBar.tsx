@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { Terminal } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
 
-const NAV = [
+const SCROLL_NAV = [
   { label: 'Projects', id: 'projects' },
   { label: 'Team', id: 'team' },
   { label: 'Contact', id: 'contact' },
@@ -11,6 +12,8 @@ const NAV = [
 export default function NavBar() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const location = useLocation()
+  const isHome = location.pathname === '/'
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40)
@@ -20,7 +23,11 @@ export default function NavBar() {
 
   const go = (id: string) => {
     setOpen(false)
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    if (isHome) {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      window.location.href = `/#${id}`
+    }
   }
 
   return (
@@ -33,16 +40,16 @@ export default function NavBar() {
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
-          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center">
               <Terminal size={16} className="text-white" />
             </div>
             <span className="font-bold text-white">Web<span className="neon-cyan">Dev</span>Cell</span>
-          </button>
+          </Link>
 
           {/* Desktop links */}
           <ul className="hidden md:flex items-center gap-8">
-            {NAV.map(l => (
+            {SCROLL_NAV.map(l => (
               <li key={l.id}>
                 <button
                   onClick={() => go(l.id)}
@@ -52,6 +59,14 @@ export default function NavBar() {
                 </button>
               </li>
             ))}
+            <li>
+              <Link
+                to="/posts"
+                className="text-slate-400 hover:text-cyan-400 text-sm font-medium tracking-wide transition-colors duration-200"
+              >
+                Blog
+              </Link>
+            </li>
           </ul>
 
           {/* Mobile toggle */}
@@ -75,7 +90,7 @@ export default function NavBar() {
           animate={{ opacity: 1 }}
           className="fixed inset-0 z-40 glass-strong flex flex-col items-center justify-center gap-8"
         >
-          {NAV.map((l, i) => (
+          {SCROLL_NAV.map((l, i) => (
             <motion.button
               key={l.id}
               initial={{ opacity: 0, y: 20 }}
@@ -87,6 +102,19 @@ export default function NavBar() {
               {l.label}
             </motion.button>
           ))}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: SCROLL_NAV.length * 0.07 }}
+          >
+            <Link
+              to="/posts"
+              onClick={() => setOpen(false)}
+              className="text-2xl font-bold text-white hover:neon-cyan transition-all"
+            >
+              Blog
+            </Link>
+          </motion.div>
         </motion.div>
       )}
     </>

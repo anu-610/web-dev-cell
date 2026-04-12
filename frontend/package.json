@@ -11,10 +11,15 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.102.1",
+    "@types/dompurify": "^3.0.5",
+    "@types/quill": "^2.0.14",
+    "dompurify": "^3.3.3",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.7.0",
+    "quill": "^2.0.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-google-recaptcha-v3": "^1.11.0",
     "react-router-dom": "^7.14.0",
     "zustand": "^5.0.12"
   },

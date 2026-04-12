@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     # e.g. ALLOWED_ORIGINS=http://localhost:5173,https://webdevcell.iitmandi.ac.in
     ALLOWED_ORIGINS: str = "http://localhost:5173"
 
+    # Google reCAPTCHA v3
+    RECAPTCHA_SECRET_KEY: str = ""
+    RECAPTCHA_MIN_SCORE: float = 0.5
+
     @property
     def cors_origins(self) -> list[str]:
         """Parse ALLOWED_ORIGINS into a stripped list. Handles CRLF .env files."""

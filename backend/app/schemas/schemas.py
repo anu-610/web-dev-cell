@@ -75,6 +75,39 @@ class ProjectOut(ProjectBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+
+# ── Post ──────────────────────────────────────────────────────────────────────
+
+VALID_CATEGORIES = ["vulnerability", "new-feature", "tutorial", "news", "announcement", "other"]
+
+
+class PostCreate(BaseModel):
+    title: str
+    content: str
+    author_name: str
+    category: str
+    thumbnail_url: str
+    recaptcha_token: str
+
+
+class PostOut(BaseModel):
+    id: uuid.UUID
+    title: str
+    content: str
+    author_name: str
+    category: str
+    thumbnail_url: str
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PostStatusUpdate(BaseModel):
+    status: str  # "approved" | "rejected"
+
+
 # ── Site Settings ─────────────────────────────────────────────────────────────
 
 class ThemeOut(BaseModel):

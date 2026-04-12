@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import String, Text, Boolean, DateTime, Integer, ForeignKey, func
+from sqlalchemy import String, Text, Boolean, DateTime, Integer, ForeignKey, func, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -88,6 +88,39 @@ class SiteSettings(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
     hero_theme: Mapped[str] = mapped_column(
         String(32), nullable=False, server_default="aurora"
+    )
+
+
+class Post(Base):
+    """Community post — any user can submit; admin approves before public display."""
+
+    __tablename__ = "posts"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    title: Mapped[str] = mapped_column(String(240), nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False, comment="Rich HTML from Quill editor")
+    author_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    category: Mapped[str] = mapped_column(
+        String(80), nullable=False,
+        comment="e.g. vulnerability, new-feature, tutorial, news",
+    )
+    thumbnail_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, server_default="pending",
+        comment="pending | approved | rejected",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        server_onupdate=func.now(),
+        nullable=False,
     )
 
 

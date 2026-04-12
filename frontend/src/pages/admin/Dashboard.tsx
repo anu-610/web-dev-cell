@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, Users, FolderKanban, Terminal, Plus, Trash2, Edit3, Save, X, Palette } from 'lucide-react'
+import { LogOut, Users, FolderKanban, Terminal, Plus, Trash2, Edit3, Save, X, Palette, FileText, CheckCircle, XCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/stores/auth'
 import { apiFetch } from '@/lib/api'
@@ -10,7 +10,7 @@ import { useThemeStore, type HeroTheme } from '@/stores/themeStore'
 import type { TeamMember } from '@/components/sections/Team'
 import type { Project } from '@/components/sections/Projects'
 
-type Tab = 'members' | 'projects' | 'theme'
+type Tab = 'members' | 'projects' | 'theme' | 'posts'
 
 const THEMES: { id: HeroTheme; label: string; icon: string; desc: string }[] = [
   { id: 'aurora',  icon: '🌌', label: 'Aurora',  desc: 'Floating particle field with animated aurora glow blobs' },
@@ -26,6 +26,7 @@ export default function AdminDashboard() {
 
   const [members, setMembers] = useState<TeamMember[]>([])
   const [projects, setProjects] = useState<Project[]>([])
+  const [posts, setPosts] = useState<any[]>([])
   const [isFetching, setIsFetching] = useState(true)
 
   // Edit states
@@ -49,12 +50,14 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setIsFetching(true)
     try {
-      const [m, p] = await Promise.all([
+      const [m, p, po] = await Promise.all([
         apiFetch<TeamMember[]>('/members'),
-        apiFetch<Project[]>('/projects')
+        apiFetch<Project[]>('/projects'),
+        apiFetch<any[]>('/posts/admin/all')
       ])
       setMembers(m)
       setProjects(p)
+      setPosts(po)
     } catch (e) {
       console.error(e)
     } finally {
@@ -67,6 +70,18 @@ export default function AdminDashboard() {
     navigate('/admin/login')
   }
 
+  const handlePostStatus = async (id: string, status: 'approved' | 'rejected') => {
+    try {
+      await apiFetch(`/posts/${id}/status`, {
+        method: 'PATCH',
+        data: { status }
+      })
+      fetchData()
+    } catch (e) {
+      alert(`Error updating post status`)
+    }
+  }
+
   // Generic Save (Create/Update)
   const handleSave = async (type: Tab) => {
     try {
@@ -76,7 +91,7 @@ export default function AdminDashboard() {
         } else {
           await apiFetch(`/members/${editingId}`, { method: 'PATCH', data: editForm })
         }
-      } else {
+      } else if (type === 'projects') {
         if (editingId === 'new') {
           await apiFetch('/projects/', { method: 'POST', data: editForm })
         } else {
@@ -127,6 +142,12 @@ export default function AdminDashboard() {
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${tab === 'projects' ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
             <FolderKanban size={18} /> Projects
+          </button>
+          <button
+            onClick={() => { setTab('posts'); setEditingId(null) }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${tab === 'posts' ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <FileText size={18} /> Blog Posts
           </button>
           <button
             onClick={() => { setTab('theme'); setEditingId(null) }}
@@ -185,6 +206,71 @@ export default function AdminDashboard() {
                 Visitors see whatever theme was last set.
               </p>
             </div>
+          </div>
+        ) : tab === 'posts' ? (
+          /* ── Posts Panel ── */
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <FileText size={22} className="text-cyan-400" />
+                <h1 className="text-2xl font-bold">Blog Posts Moderation</h1>
+              </div>
+            </div>
+
+            {isFetching ? (
+              <div className="text-slate-500">Loading posts...</div>
+            ) : (
+              <div className="space-y-4">
+                {posts.map((post) => (
+                  <GlassCard key={post.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${
+                          post.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
+                          post.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                          'bg-amber-500/20 text-amber-400'
+                        }`}>
+                          {post.status}
+                        </span>
+                        <span className="text-xs text-slate-400 border border-white/10 rounded px-2">{post.category}</span>
+                      </div>
+                      <h3 className="font-bold text-white text-lg leading-tight mb-1">{post.title}</h3>
+                      <p className="text-sm text-slate-400">By {post.author_name} • {new Date(post.created_at).toLocaleDateString()}</p>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {post.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handlePostStatus(post.id, 'approved')}
+                            className="p-2 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-lg flex items-center gap-2 text-sm"
+                          >
+                            <CheckCircle size={16} /> Approve
+                          </button>
+                          <button
+                            onClick={() => handlePostStatus(post.id, 'rejected')}
+                            className="p-2 text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg flex items-center gap-2 text-sm"
+                          >
+                            <XCircle size={16} /> Reject
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => handleDelete('posts', post.id)}
+                        className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        title="Delete Post"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </GlassCard>
+                ))}
+
+                {posts.length === 0 && !isFetching && (
+                  <div className="text-center py-12 text-slate-500">No blog posts found.</div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           /* ── Members / Projects Panel ── */

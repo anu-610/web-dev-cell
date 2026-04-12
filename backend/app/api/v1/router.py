@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends
 
 from app.core.security import verify_supabase_jwt
-from app.api.v1 import members, projects, settings
+from app.api.v1 import members, projects, settings, posts
 
 router = APIRouter(prefix="/api/v1")
 
 router.include_router(members.router)
 router.include_router(projects.router)
 router.include_router(settings.router)
+router.include_router(posts.router)
 
 
 @router.get("/me", tags=["auth"])
