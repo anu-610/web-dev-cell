@@ -2,36 +2,58 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Terminal, Lock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
+import { apiFetch } from '@/lib/api'
 import NeonButton from '@/components/ui/NeonButton'
 import GlassCard from '@/components/ui/GlassCard'
 
-export default function Login() {
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const setAuth = useAuthStore((s) => s.setAuth)
+  const { executeRecaptcha } = useGoogleReCaptcha()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      // 1. Execute reCAPTCHA
+      if (!executeRecaptcha) {
+        throw new Error('reCAPTCHA is not loaded yet. Please try again.')
+      }
 
-    if (error) {
-      setError(error.message)
-    } else if (data.session) {
-      setAuth(data.session.access_token, true)
-      navigate('/admin')
+      const token = await executeRecaptcha('admin_login')
+
+      // 2. Verify token with our backend
+      await apiFetch('/settings/verify-recaptcha', {
+        method: 'POST',
+        data: { recaptcha_token: token }
+      })
+
+      // 3. Authenticate with Supabase
+      const { data, error: supaError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (supaError) {
+        throw new Error(supaError.message)
+      } else if (data.session) {
+        setAuth(data.session.access_token, true)
+        navigate('/admin')
+      }
+    } catch (err: any) {
+      setError(err.message || 'Login failed.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
@@ -78,9 +100,33 @@ export default function Login() {
             <NeonButton type="submit" className="w-full mt-6" disabled={loading}>
               {loading ? 'Authenticating...' : 'Sign In'}
             </NeonButton>
+
+            <p className="text-xs text-center text-slate-500 mt-4">
+              Protected by reCAPTCHA. Google <a href="https://policies.google.com/privacy" className="underline">Privacy Policy</a> and <a href="https://policies.google.com/terms" className="underline">Terms of Service</a> apply.
+            </p>
           </form>
         </GlassCard>
       </motion.div>
     </div>
+  )
+}
+
+export default function Login() {
+  const recaptchaKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY
+
+  if (!recaptchaKey) {
+    return (
+      <div className="min-h-screen bg-void-950 flex items-center justify-center p-4">
+        <div className="text-center p-6 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400">
+          Error: VITE_RECAPTCHA_SITE_KEY is not configured.
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <GoogleReCaptchaProvider reCaptchaKey={recaptchaKey}>
+      <LoginForm />
+    </GoogleReCaptchaProvider>
   )
 }

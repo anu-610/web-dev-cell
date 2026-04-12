@@ -3,14 +3,24 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import require_admin
+from app.core.recaptcha import verify_recaptcha
 from app.db.session import get_db
 from app.models.models import SiteSettings
 from app.schemas.schemas import ThemeOut, ThemeUpdate
+from pydantic import BaseModel
 
 VALID_THEMES = {"aurora", "mesh", "circuit"}
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
+class RecaptchaVerifyRequest(BaseModel):
+    recaptcha_token: str
+
+@router.post("/verify-recaptcha")
+async def verify_recaptcha_endpoint(body: RecaptchaVerifyRequest):
+    """Public — verifies a reCAPTCHA token for login or generic forms."""
+    await verify_recaptcha(body.recaptcha_token)
+    return {"success": True}
 
 @router.get("/theme", response_model=ThemeOut)
 async def get_theme(db: AsyncSession = Depends(get_db)):
