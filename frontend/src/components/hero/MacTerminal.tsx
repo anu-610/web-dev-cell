@@ -96,78 +96,113 @@ export default function MacTerminal() {
       animate={{ opacity: fading ? 0 : 1, x: 0, y: 0 }}
       transition={{ duration: 0.9, ease: 'easeOut' }}
       className="hidden md:flex flex-shrink-0 items-center justify-center"
-      style={{ width: '100%', maxWidth: '580px' }}
+      style={{ width: '100%', maxWidth: '680px' }}
     >
-      {/* 3D tilt wrapper — separate from motion so transform isn't cancelled by filter */}
+      {/* 3D tilt wrapper */}
       <div
         className="w-full pointer-events-none select-none"
         style={{
           transformStyle: 'preserve-3d',
-          transform: 'perspective(800px) rotateY(-20deg) rotateX(-4deg)',
-          // rotateY NEGATIVE = right edge projects TOWARD viewer (correct)
-          // Box shadows simulate depth: right/bottom edges cast darkness outward
+          transform: 'perspective(900px) rotateY(-18deg) rotateX(-3deg)',
           boxShadow: `
-            20px 20px 60px rgba(0,0,0,0.7),
-            40px 40px 100px rgba(0,0,0,0.5),
-            -4px -4px 30px rgba(6,182,212,0.06),
-            0 0 80px rgba(6,182,212,0.04)
+            24px 24px 70px rgba(0,0,0,0.75),
+            48px 48px 120px rgba(0,0,0,0.5),
+            -4px -4px 30px rgba(6,182,212,0.08),
+            0 0 100px rgba(6,182,212,0.05)
           `,
-          borderRadius: '12px',
+          borderRadius: '14px',
         }}
       >
-
-      <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          background: '#1a1b26',
-          border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 0 80px rgba(6,182,212,0.07), inset 0 0 0 1px rgba(255,255,255,0.04)',
-        }}
-      >
-        {/* ── Title bar ── */}
+        {/* Glass border glow ring */}
         <div
-          className="flex items-center gap-2 px-4 py-3 border-b border-white/5"
-          style={{ background: '#24283b' }}
+          className="rounded-[14px] overflow-hidden"
+          style={{
+            background: '#1a1b26',
+            border: '1px solid rgba(255,255,255,0.10)',
+            boxShadow: '0 0 0 1px rgba(6,182,212,0.08) inset, 0 0 60px rgba(6,182,212,0.06) inset',
+          }}
         >
-          <span className="w-3 h-3 rounded-full" style={{ background: '#ff5f57' }} />
-          <span className="w-3 h-3 rounded-full" style={{ background: '#febc2e' }} />
-          <span className="w-3 h-3 rounded-full" style={{ background: '#28c840' }} />
-          <div className="flex-1 text-center">
-            <span className="text-xs text-slate-500 font-mono">dev-cell — bash — 80×24</span>
+          {/* ── Title bar ── */}
+          <div
+            className="flex items-center gap-2 px-4 py-3 border-b border-white/5"
+            style={{
+              background: 'linear-gradient(180deg, #2a2d3e 0%, #24283b 100%)',
+            }}
+          >
+            <span className="w-3 h-3 rounded-full" style={{ background: '#ff5f57' }} />
+            <span className="w-3 h-3 rounded-full" style={{ background: '#febc2e' }} />
+            <span className="w-3 h-3 rounded-full" style={{ background: '#28c840' }} />
+            <div className="flex-1 text-center">
+              <span className="text-xs text-slate-400 font-mono tracking-wide">~/dev-cell</span>
+            </div>
+          </div>
+
+          {/* ── Terminal body with glassy edge fade ── */}
+          <div className="relative" style={{ background: '#1a1b26' }}>
+            <div
+              ref={bodyRef}
+              className="p-5 font-mono text-[13px] sm:text-sm leading-relaxed"
+              style={{ minHeight: '380px', maxHeight: '460px', overflowY: 'hidden' }}
+            >
+              {lines.map((line) =>
+                line.type === 'blank' ? (
+                  <div key={line.id} className="h-3" />
+                ) : (
+                  <div key={line.id} className="mb-0.5">
+                    <span
+                      className={`${LINE_COLORS[line.type]} block overflow-hidden whitespace-nowrap`}
+                      style={
+                        line.type === 'cmd'
+                          ? {
+                              width: '0',
+                              animation: `terminal-typing ${line.charCount * 75}ms steps(${line.charCount}, end) forwards`,
+                            }
+                          : undefined
+                      }
+                    >
+                      {line.text}
+                    </span>
+                  </div>
+                )
+              )}
+              {/* Blinking cursor */}
+              <span className="inline-block w-[7px] h-[15px] bg-cyan-400/80 terminal-cursor align-middle mt-0.5" />
+            </div>
+
+            {/* Glassy edge fade — top */}
+            <div
+              className="absolute top-0 left-0 right-0 pointer-events-none"
+              style={{
+                height: '48px',
+                background: 'linear-gradient(to bottom, #1a1b26 0%, transparent 100%)',
+              }}
+            />
+            {/* Glassy edge fade — bottom */}
+            <div
+              className="absolute bottom-0 left-0 right-0 pointer-events-none"
+              style={{
+                height: '72px',
+                background: 'linear-gradient(to top, rgba(26,27,38,0.98) 0%, transparent 100%)',
+              }}
+            />
+            {/* Glassy edge fade — left */}
+            <div
+              className="absolute top-0 bottom-0 left-0 pointer-events-none"
+              style={{
+                width: '32px',
+                background: 'linear-gradient(to right, rgba(26,27,38,0.6) 0%, transparent 100%)',
+              }}
+            />
+            {/* Glassy edge fade — right */}
+            <div
+              className="absolute top-0 bottom-0 right-0 pointer-events-none"
+              style={{
+                width: '48px',
+                background: 'linear-gradient(to left, rgba(26,27,38,0.85) 0%, transparent 100%)',
+              }}
+            />
           </div>
         </div>
-
-        {/* ── Terminal body ── */}
-        <div
-          ref={bodyRef}
-          className="p-4 font-mono text-xs sm:text-[13px] leading-relaxed"
-          style={{ minHeight: '300px', maxHeight: '360px', overflowY: 'hidden', background: '#1a1b26' }}
-        >
-          {lines.map((line) =>
-            line.type === 'blank' ? (
-              <div key={line.id} className="h-3" />
-            ) : (
-              <div key={line.id} className="mb-0.5">
-                <span
-                  className={`${LINE_COLORS[line.type]} block overflow-hidden whitespace-nowrap`}
-                  style={
-                    line.type === 'cmd'
-                      ? {
-                          width: '0',
-                          animation: `terminal-typing ${line.charCount * 75}ms steps(${line.charCount}, end) forwards`,
-                        }
-                      : undefined
-                  }
-                >
-                  {line.text}
-                </span>
-              </div>
-            )
-          )}
-          {/* Blinking cursor */}
-          <span className="inline-block w-[7px] h-[14px] bg-cyan-400/80 terminal-cursor align-middle mt-0.5" />
-        </div>
-      </div>
       </div>
     </motion.div>
   )
