@@ -52,10 +52,10 @@ export default function Hero() {
         style={{ background: 'radial-gradient(ellipse 80% 80% at 50% 50%, transparent 30%, rgba(2,8,23,0.6) 100%)' }} />
 
       {/* ── Main layout: text left | terminal right ── */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-16 flex flex-col md:flex-row items-center gap-10 md:gap-6 py-24 md:py-0 min-h-screen">
+      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 sm:px-10 md:px-12 flex flex-col md:flex-row items-center gap-10 md:gap-8 py-24 md:py-0 min-h-screen">
 
         {/* ── LEFT: Content ── */}
-        <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1 md:max-w-[48%]">
+        <div className="flex flex-col items-center md:items-start text-center md:text-left w-full md:w-[38%] shrink-0">
 
           {/* Badge */}
           <motion.div
@@ -134,7 +134,7 @@ export default function Hero() {
         </div>
 
         {/* ── RIGHT: macOS Terminal (desktop only, managed internally) ── */}
-        <div className="flex-1 flex items-center justify-center md:justify-end md:max-w-[52%]">
+        <div className="flex-1 flex items-center justify-center md:justify-end min-w-0">
           <MacTerminal />
         </div>
       </div>

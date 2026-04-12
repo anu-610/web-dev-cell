@@ -95,14 +95,15 @@ export default function MacTerminal() {
       initial={{ opacity: 0, x: 60, y: 20 }}
       animate={{ opacity: fading ? 0 : 1, x: 0, y: 0 }}
       transition={{ duration: 0.9, ease: 'easeOut' }}
-      className="hidden md:flex w-full flex-shrink-0 items-center justify-end"
+      className="hidden md:flex flex-shrink-0 items-center justify-end relative"
+      style={{ width: '880px', maxWidth: '120%' }}
     >
       {/* 3D tilt wrapper */}
       <div
         className="w-full pointer-events-none select-none"
         style={{
           transformStyle: 'preserve-3d',
-          transform: 'perspective(1000px) rotateY(-18deg) rotateX(-3deg)',
+          transform: 'perspective(1200px) rotateY(-16deg) rotateX(-2deg)',
           boxShadow: `
             28px 28px 80px rgba(0,0,0,0.8),
             56px 56px 140px rgba(0,0,0,0.55),
@@ -112,25 +113,20 @@ export default function MacTerminal() {
         }}
       >
         {/*
-          Glass border shell — the trick:
-          A 2px gradient "padding" acts as the border.
-          The gradient goes from bright white (top-left highlight) to
-          cyan-tinted (bottom-right) — like light hitting frosted glass.
-          backdrop-filter on this shell blurs whatever is behind it,
-          giving the frosted / glassmorphism look at the border itself.
+          Real Glass Border Shell:
+          Thicker frosted white border to make the glass effect pop.
         */}
         <div
           style={{
             borderRadius: '16px',
-            padding: '2px',
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.08) 40%, rgba(6,182,212,0.25) 100%)',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
+            padding: '4px', /* Thicker glass border */
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.3) 100%)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255,255,255,0.5)', /* Solid white outer line */
             boxShadow: `
-              inset 0 1.5px 0 rgba(255,255,255,0.18),
-              inset 0 -1px 0 rgba(255,255,255,0.05),
-              0 0 50px rgba(6,182,212,0.14),
-              0 0 80px rgba(124,58,237,0.08)
+              inset 0 2px 4px rgba(255,255,255,0.4),
+              0 0 50px rgba(255,255,255,0.1)
             `,
           }}
         >
