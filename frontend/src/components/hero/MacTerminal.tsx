@@ -103,8 +103,8 @@ export default function MacTerminal() {
         className="w-full pointer-events-none select-none"
         style={{
           transformStyle: 'preserve-3d',
-          transform: 'perspective(800px) rotateY(18deg) rotateX(-4deg)',
-          // Right side projects TOWARD viewer — rotateY positive = right edge closer
+          transform: 'perspective(800px) rotateY(-20deg) rotateX(-4deg)',
+          // rotateY NEGATIVE = right edge projects TOWARD viewer (correct)
           // Box shadows simulate depth: right/bottom edges cast darkness outward
           boxShadow: `
             20px 20px 60px rgba(0,0,0,0.7),
