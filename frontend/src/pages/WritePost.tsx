@@ -24,7 +24,15 @@ function GoogleSignInBlock() {
       const errDesc = params.get('error_description')
       if (errDesc) {
         // Clean up the error message from Postgres trigger formatting if needed
-        const cleanError = errDesc.replace(/\+/g, ' ').replace(/^.*EXCEPTION:\s*/, '')
+        let cleanError = errDesc.replace(/\+/g, ' ')
+
+        // If it's the generic Supabase error, replace it with our specific constraint message
+        if (cleanError.includes('Database error saving new user')) {
+          cleanError = 'Only IIT Mandi emails (@students.iitmandi.ac.in) are allowed to sign in.'
+        } else {
+          cleanError = cleanError.replace(/^.*EXCEPTION:\s*/, '')
+        }
+
         setOauthError(cleanError || 'Authentication failed. Please try again.')
       }
       // Remove hash from URL to keep it clean
