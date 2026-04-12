@@ -28,7 +28,9 @@ export default function AdminDashboard() {
   const [projects, setProjects] = useState<Project[]>([])
   const [posts, setPosts] = useState<any[]>([])
   const [announcements, setAnnouncements] = useState<any[]>([])
+  const [siteSettings, setSiteSettings] = useState<any>({ hero_theme: 'aurora', show_github_stats: false, github_repo: 'kamandprompt/dev-cell' })
   const [isFetching, setIsFetching] = useState(true)
+  const [isUploading, setIsUploading] = useState(false)
 
   // Edit states
   const [editingId, setEditingId] = useState<string | number | null>(null)
@@ -51,20 +53,43 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setIsFetching(true)
     try {
-      const [m, p, po, ann] = await Promise.all([
+      const [m, p, po, ann, site] = await Promise.all([
         apiFetch<TeamMember[]>('/members'),
         apiFetch<Project[]>('/projects'),
         apiFetch<any[]>('/posts/admin/all'),
-        apiFetch<any[]>('/announcements')
+        apiFetch<any[]>('/announcements'),
+        apiFetch<any>('/settings/site')
       ])
       setMembers(m)
       setProjects(p)
       setPosts(po)
       setAnnouncements(ann)
+      setSiteSettings(site)
+      setHeroTheme(site.hero_theme)
     } catch (e) {
       console.error(e)
     } finally {
       setIsFetching(false)
+    }
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    if (!e.target.files || !e.target.files[0]) return
+    setIsUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', e.target.files[0])
+      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api/v1'}/posts/upload-thumbnail`, {
+        method: 'POST',
+        body: formData
+      })
+      if (!res.ok) throw new Error('Upload failed')
+      const data = await res.json()
+      setEditForm({ ...editForm, [field]: data.url })
+    } catch (err) {
+      alert('Error uploading image')
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -90,19 +115,19 @@ export default function AdminDashboard() {
     try {
       if (type === 'members') {
         if (editingId === 'new') {
-          await apiFetch('/members/', { method: 'POST', data: editForm })
+          await apiFetch('/members', { method: 'POST', data: editForm })
         } else {
           await apiFetch(`/members/${editingId}`, { method: 'PATCH', data: editForm })
         }
       } else if (type === 'projects') {
         if (editingId === 'new') {
-          await apiFetch('/projects/', { method: 'POST', data: editForm })
+          await apiFetch('/projects', { method: 'POST', data: editForm })
         } else {
           await apiFetch(`/projects/${editingId}`, { method: 'PATCH', data: editForm })
         }
       } else if (type === 'announcements') {
         if (editingId === 'new') {
-          await apiFetch('/announcements/', { method: 'POST', data: editForm })
+          await apiFetch('/announcements', { method: 'POST', data: editForm })
         } else {
           await apiFetch(`/announcements/${editingId}`, { method: 'PATCH', data: editForm })
         }
@@ -168,7 +193,7 @@ export default function AdminDashboard() {
             onClick={() => { setTab('theme'); setEditingId(null) }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${tab === 'theme' ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
-            <Palette size={18} /> Site Theme
+            <Palette size={18} /> Site Settings
           </button>
         </nav>
         <div className="p-4 border-t border-white/5">
@@ -185,10 +210,56 @@ export default function AdminDashboard() {
           <div>
             <div className="flex items-center gap-3 mb-8">
               <Palette size={22} className="text-cyan-400" />
-              <h1 className="text-2xl font-bold">Hero Theme</h1>
+              <h1 className="text-2xl font-bold">Site Settings</h1>
             </div>
+
+            <GlassCard className="p-6 mb-8">
+              <h2 className="text-xl font-bold mb-4">GitHub Open Source Stats</h2>
+              <p className="text-sm text-slate-400 mb-6">Display a live GitHub widget on the homepage tracking repository stats.</p>
+
+              <div className="flex flex-col gap-4 max-w-md">
+                <label className="flex items-center gap-3 text-white">
+                  <input
+                    type="checkbox"
+                    checked={siteSettings.show_github_stats}
+                    onChange={async (e) => {
+                      const checked = e.target.checked
+                      setSiteSettings({ ...siteSettings, show_github_stats: checked })
+                      await apiFetch('/settings/site', { method: 'PATCH', data: { show_github_stats: checked } })
+                    }}
+                    className="w-5 h-5 rounded bg-void-800 border-void-700"
+                  />
+                  Enable Live GitHub Stats
+                </label>
+
+                {siteSettings.show_github_stats && (
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">Target Repository (owner/repo)</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={siteSettings.github_repo || ''}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, github_repo: e.target.value })}
+                        className="flex-1 bg-void-900 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-cyan-500/50"
+                      />
+                      <NeonButton
+                        size="sm"
+                        onClick={async () => {
+                          await apiFetch('/settings/site', { method: 'PATCH', data: { github_repo: siteSettings.github_repo } })
+                          alert("Repository updated!")
+                        }}
+                      >
+                        Save Repo
+                      </NeonButton>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </GlassCard>
+
+            <h2 className="text-xl font-bold mb-4">Hero Theme</h2>
             <p className="text-slate-400 mb-8 text-sm">
-              Choose the visual style for the homepage hero section. The active theme is saved to visitors' browsers.
+              Choose the visual style for the homepage hero section.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {THEMES.map((t) => (
@@ -196,7 +267,11 @@ export default function AdminDashboard() {
                   key={t.id}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setHeroTheme(t.id)}
+                  onClick={async () => {
+                    setHeroTheme(t.id)
+                    setSiteSettings({ ...siteSettings, hero_theme: t.id })
+                    await apiFetch('/settings/site', { method: 'PATCH', data: { hero_theme: t.id } })
+                  }}
                   className={`relative p-6 rounded-2xl border text-left transition-all duration-200 ${
                     heroTheme === t.id
                       ? 'border-cyan-500/60 bg-cyan-500/10 shadow-[0_0_30px_rgba(6,182,212,0.2)]'
@@ -434,22 +509,41 @@ export default function AdminDashboard() {
                   <GlassCard key={item.id} className="p-4 flex items-center justify-between">
                     {editingId === item.id ? (
                       /* Edit Form Row */
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 mr-4">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-4 mr-4">
                         {tab === 'members' ? (
                           <>
                             <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Name" />
                             <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.role || ''} onChange={e => setEditForm({...editForm, role: e.target.value})} placeholder="Role" />
-                            <input className="bg-void-800 p-2 rounded text-sm text-white" type="number" value={editForm.year || ''} onChange={e => setEditForm({...editForm, year: parseInt(e.target.value)})} placeholder="Year" />
                             <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.github_url || ''} onChange={e => setEditForm({...editForm, github_url: e.target.value})} placeholder="GitHub URL" />
+                            <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.linkedin_url || ''} onChange={e => setEditForm({...editForm, linkedin_url: e.target.value})} placeholder="LinkedIn URL" />
+                            <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.instagram_url || ''} onChange={e => setEditForm({...editForm, instagram_url: e.target.value})} placeholder="Instagram URL" />
+
+                            <div className="md:col-span-5 flex items-center gap-4">
+                              {editForm.avatar_url && <img src={editForm.avatar_url} className="w-10 h-10 rounded-full object-cover" />}
+                              <label className="text-sm text-cyan-400 cursor-pointer hover:underline">
+                                {isUploading ? 'Uploading...' : 'Upload Avatar Image'}
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'avatar_url')} />
+                              </label>
+                            </div>
                           </>
                         ) : (
                           <>
                             <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} placeholder="Title" />
                             <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.tags || ''} onChange={e => setEditForm({...editForm, tags: e.target.value})} placeholder="Tags (comma separated)" />
+                            <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.github_url || ''} onChange={e => setEditForm({...editForm, github_url: e.target.value})} placeholder="GitHub URL" />
+                            <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.live_url || ''} onChange={e => setEditForm({...editForm, live_url: e.target.value})} placeholder="Live URL" />
                             <label className="flex items-center gap-2 text-sm text-slate-400">
                               <input type="checkbox" checked={editForm.featured || false} onChange={e => setEditForm({...editForm, featured: e.target.checked})} className="rounded bg-void-800 border-void-700" />
                               Featured
                             </label>
+
+                            <div className="md:col-span-5 flex items-center gap-4 mt-2">
+                              {editForm.thumbnail_url && <img src={editForm.thumbnail_url} className="w-16 h-10 rounded object-cover" />}
+                              <label className="text-sm text-cyan-400 cursor-pointer hover:underline">
+                                {isUploading ? 'Uploading...' : 'Upload Project Thumbnail'}
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'thumbnail_url')} />
+                              </label>
+                            </div>
                           </>
                         )}
                       </div>
@@ -481,22 +575,41 @@ export default function AdminDashboard() {
                 {/* Create New Form Row */}
                 {editingId === 'new' && (
                   <GlassCard className="p-4 flex items-center justify-between border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 mr-4">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-4 mr-4">
                       {tab === 'members' ? (
                         <>
                           <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Name" />
                           <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.role || ''} onChange={e => setEditForm({...editForm, role: e.target.value})} placeholder="Role" />
-                          <input className="bg-void-800 p-2 rounded text-sm text-white" type="number" value={editForm.year || ''} onChange={e => setEditForm({...editForm, year: parseInt(e.target.value)})} placeholder="Year" />
                           <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.github_url || ''} onChange={e => setEditForm({...editForm, github_url: e.target.value})} placeholder="GitHub URL" />
+                          <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.linkedin_url || ''} onChange={e => setEditForm({...editForm, linkedin_url: e.target.value})} placeholder="LinkedIn URL" />
+                          <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.instagram_url || ''} onChange={e => setEditForm({...editForm, instagram_url: e.target.value})} placeholder="Instagram URL" />
+
+                          <div className="md:col-span-5 flex items-center gap-4 mt-2">
+                            {editForm.avatar_url && <img src={editForm.avatar_url} className="w-10 h-10 rounded-full object-cover" />}
+                            <label className="text-sm text-cyan-400 cursor-pointer hover:underline">
+                              {isUploading ? 'Uploading...' : 'Upload Avatar Image'}
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'avatar_url')} />
+                            </label>
+                          </div>
                         </>
                       ) : (
                         <>
                           <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} placeholder="Title" />
                           <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.tags || ''} onChange={e => setEditForm({...editForm, tags: e.target.value})} placeholder="Tags (comma separated)" />
+                          <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.github_url || ''} onChange={e => setEditForm({...editForm, github_url: e.target.value})} placeholder="GitHub URL" />
+                          <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.live_url || ''} onChange={e => setEditForm({...editForm, live_url: e.target.value})} placeholder="Live URL" />
                           <label className="flex items-center gap-2 text-sm text-slate-400">
                             <input type="checkbox" checked={editForm.featured || false} onChange={e => setEditForm({...editForm, featured: e.target.checked})} className="rounded bg-void-800 border-void-700" />
                             Featured
                           </label>
+
+                          <div className="md:col-span-5 flex items-center gap-4 mt-2">
+                            {editForm.thumbnail_url && <img src={editForm.thumbnail_url} className="w-16 h-10 rounded object-cover" />}
+                            <label className="text-sm text-cyan-400 cursor-pointer hover:underline">
+                              {isUploading ? 'Uploading...' : 'Upload Project Thumbnail'}
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'thumbnail_url')} />
+                            </label>
+                          </div>
                         </>
                       )}
                     </div>

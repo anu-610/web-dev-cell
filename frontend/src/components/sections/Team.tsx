@@ -13,12 +13,18 @@ export interface TeamMember {
   year: number
   github_url?: string
   linkedin_url?: string
+  instagram_url?: string
+  avatar_url?: string
 }
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.1 } } }
 const item: Variants = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } } }
 
-function Avatar({ name }: { name: string }) {
+function Avatar({ name, url }: { name: string, url?: string }) {
+  if (url) {
+    const fullUrl = url.startsWith('http') ? url : `${import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}${url}`
+    return <img src={fullUrl} alt={name} className="w-full h-full object-cover" />
+  }
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
   const hue = (name.charCodeAt(0) * 7) % 360
   return (
@@ -30,15 +36,15 @@ function Avatar({ name }: { name: string }) {
 
 function MemberCard({ m }: { m: TeamMember }) {
   return (
-    <motion.div variants={item}>
+    <motion.div variants={item} className="h-full">
       <GlassCard glow="cyan" className="flex flex-col h-full">
         <div className="w-20 h-20 rounded-2xl overflow-hidden mb-4 ring-2 ring-cyan-500/20 flex-shrink-0">
-          <Avatar name={m.name} />
+          <Avatar name={m.name} url={m.avatar_url} />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col">
           <h3 className="text-white font-bold text-lg leading-tight">{m.name}</h3>
           <p className="text-cyan-400 text-sm font-mono mt-0.5 mb-2">{m.role}</p>
-          <p className="text-slate-400 text-sm leading-relaxed line-clamp-3">{m.bio}</p>
+          <p className="text-slate-400 text-sm leading-relaxed line-clamp-3 flex-1">{m.bio}</p>
           <div className="flex items-center gap-1.5 mt-3 text-xs text-slate-500">
             <GraduationCap size={13} /> Year {m.year || 'N/A'}
           </div>
@@ -52,8 +58,14 @@ function MemberCard({ m }: { m: TeamMember }) {
           )}
           {m.linkedin_url && (
             <a href={m.linkedin_url} target="_blank" rel="noopener noreferrer"
-              className="text-slate-500 hover:text-violet-400 transition-colors" aria-label="LinkedIn">
+              className="text-slate-500 hover:text-blue-400 transition-colors" aria-label="LinkedIn">
               <Link2 size={17} />
+            </a>
+          )}
+          {m.instagram_url && (
+            <a href={m.instagram_url} target="_blank" rel="noopener noreferrer"
+              className="text-slate-500 hover:text-pink-400 transition-colors" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" width="17" height="17" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
             </a>
           )}
         </div>

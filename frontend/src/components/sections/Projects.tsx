@@ -11,6 +11,7 @@ export interface Project {
   title: string
   description: string
   tags: string
+  thumbnail_url?: string
   github_url?: string
   live_url?: string
   featured: boolean
@@ -32,12 +33,21 @@ function ProjectCard({ p }: { p: Project }) {
     <motion.div variants={item} className={p.featured ? 'sm:col-span-2 md:col-span-2' : ''}>
       <GlassCard glow={p.featured ? 'violet' : 'none'} className="flex flex-col h-full relative overflow-hidden">
         {p.featured && (
-          <div className="absolute top-4 right-4 flex items-center gap-1 text-xs text-violet-400 font-mono">
+          <div className="absolute top-4 right-4 flex items-center gap-1 text-xs text-violet-400 font-mono z-20 bg-void-950/80 px-2 py-1 rounded backdrop-blur-sm">
             <Star size={12} fill="currentColor" /> Featured
           </div>
         )}
-        <div className="w-full h-40 rounded-xl mb-5 bg-gradient-to-br from-void-800 to-void-700 flex items-center justify-center">
-          <span className="text-3xl font-black text-white/10 font-mono select-none">{p.title.slice(0, 2).toUpperCase()}</span>
+        <div className="w-full h-48 rounded-xl mb-5 bg-gradient-to-br from-void-800 to-void-700 flex items-center justify-center overflow-hidden shrink-0">
+          {p.thumbnail_url ? (
+            <img
+              src={p.thumbnail_url.startsWith('http') ? p.thumbnail_url : `${import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}${p.thumbnail_url}`}
+              alt={p.title}
+              className="w-full h-full object-cover"
+              onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=No+Image' }}
+            />
+          ) : (
+            <span className="text-4xl font-black text-white/10 font-mono select-none">{p.title.slice(0, 2).toUpperCase()}</span>
+          )}
         </div>
         <div className="flex-1 flex flex-col">
           <h3 className="text-white font-bold text-xl mb-2 leading-snug">{p.title}</h3>

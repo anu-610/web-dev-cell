@@ -26,7 +26,8 @@ class Member(Base):
     year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     github_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     linkedin_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    avatar_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    instagram_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -59,6 +60,7 @@ class Project(Base):
         Text, nullable=True,
         comment="Comma-separated list e.g. 'React,FastAPI,Docker'",
     )
+    thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     github_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     live_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     featured: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -89,6 +91,8 @@ class SiteSettings(Base):
     hero_theme: Mapped[str] = mapped_column(
         String(32), nullable=False, server_default="aurora"
     )
+    show_github_stats: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default=func.false())
+    github_repo: Mapped[str | None] = mapped_column(String(255), nullable=True, server_default="kamandprompt/dev-cell")
 
 
 class Post(Base):
