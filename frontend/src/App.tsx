@@ -11,6 +11,8 @@ import Dashboard from '@/pages/admin/Dashboard'
 import ThemeSwitcher from '@/components/hero/ThemeSwitcher'
 import { useAuthStore } from '@/stores/auth'
 import { useThemeStore } from '@/stores/themeStore'
+import AnnouncementPopup from '@/components/ui/AnnouncementPopup'
+import CustomCursor from '@/components/ui/CustomCursor'
 
 function PublicLayout() {
   return (
@@ -43,8 +45,6 @@ function AdminLayout() {
   )
 }
 
-import AnnouncementPopup from '@/components/ui/AnnouncementPopup'
-
 function AppInner() {
   const { checkSession } = useAuthStore()
   const { fetchTheme } = useThemeStore()
@@ -56,6 +56,7 @@ function AppInner() {
 
   return (
     <>
+      <CustomCursor />
       <AnnouncementPopup />
       <Routes>
         <Route path="/*" element={<PublicLayout />} />
