@@ -9,3 +9,4 @@ dist/
 .DS_Store
 # Docker volumes persisted locally
 postgres_data/
+implementation_plan.md

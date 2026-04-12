@@ -1,18 +1,26 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, Users, FolderKanban, Terminal, Plus, Trash2, Edit3, Save, X } from 'lucide-react'
+import { LogOut, Users, FolderKanban, Terminal, Plus, Trash2, Edit3, Save, X, Palette } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/stores/auth'
 import { apiFetch } from '@/lib/api'
 import NeonButton from '@/components/ui/NeonButton'
 import GlassCard from '@/components/ui/GlassCard'
+import { useThemeStore, type HeroTheme } from '@/stores/themeStore'
 import type { TeamMember } from '@/components/sections/Team'
 import type { Project } from '@/components/sections/Projects'
 
-type Tab = 'members' | 'projects'
+type Tab = 'members' | 'projects' | 'theme'
+
+const THEMES: { id: HeroTheme; label: string; icon: string; desc: string }[] = [
+  { id: 'aurora',  icon: '🌌', label: 'Aurora',  desc: 'Floating particle field with animated aurora glow blobs' },
+  { id: 'mesh',    icon: '🎨', label: 'Mesh',    desc: 'Animated CSS gradient mesh with typewriter taglines' },
+  { id: 'circuit', icon: '⚡', label: 'Circuit', desc: 'SVG circuit board with flowing current and pulsing nodes' },
+]
 
 export default function AdminDashboard() {
   const { token, isAdmin, logout, checkSession, loading } = useAuthStore()
+  const { heroTheme, setHeroTheme } = useThemeStore()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('members')
 
@@ -120,6 +128,12 @@ export default function AdminDashboard() {
           >
             <FolderKanban size={18} /> Projects
           </button>
+          <button
+            onClick={() => { setTab('theme'); setEditingId(null) }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${tab === 'theme' ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <Palette size={18} /> Site Theme
+          </button>
         </nav>
         <div className="p-4 border-t border-white/5">
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors">
@@ -130,103 +144,150 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold capitalize">{tab} Management</h1>
-          <NeonButton
-            size="sm"
-            onClick={() => {
-              setEditingId('new')
-              setEditForm(tab === 'members' ? { is_active: true } : { is_active: true, featured: false })
-            }}
-            disabled={editingId !== null}
-          >
-            <Plus size={16} /> Add New
-          </NeonButton>
-        </div>
-
-        {isFetching ? (
-          <div className="text-slate-500">Loading data...</div>
+        {/* ── Theme Panel ── */}
+        {tab === 'theme' ? (
+          <div>
+            <div className="flex items-center gap-3 mb-8">
+              <Palette size={22} className="text-cyan-400" />
+              <h1 className="text-2xl font-bold">Hero Theme</h1>
+            </div>
+            <p className="text-slate-400 mb-8 text-sm">
+              Choose the visual style for the homepage hero section. The active theme is saved to visitors' browsers.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {THEMES.map((t) => (
+                <motion.button
+                  key={t.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setHeroTheme(t.id)}
+                  className={`relative p-6 rounded-2xl border text-left transition-all duration-200 ${
+                    heroTheme === t.id
+                      ? 'border-cyan-500/60 bg-cyan-500/10 shadow-[0_0_30px_rgba(6,182,212,0.2)]'
+                      : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/8'
+                  }`}
+                >
+                  {heroTheme === t.id && (
+                    <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+                  )}
+                  <div className="text-4xl mb-4">{t.icon}</div>
+                  <h3 className="font-bold text-white text-lg mb-1">{t.label}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed">{t.desc}</p>
+                  {heroTheme === t.id && (
+                    <div className="mt-4 text-xs font-mono text-cyan-400 tracking-widest uppercase">✓ Active</div>
+                  )}
+                </motion.button>
+              ))}
+            </div>
+            <div className="mt-8 p-4 rounded-xl border border-white/5 bg-white/3">
+              <p className="text-xs text-slate-500 font-mono">
+                💡 Theme changes are saved to <code className="text-cyan-600">localStorage</code> and take effect immediately on the homepage.
+                Visitors see whatever theme was last set.
+              </p>
+            </div>
+          </div>
         ) : (
-          <div className="space-y-4">
-            {(tab === 'members' ? members : projects).map((item: any) => (
-              <GlassCard key={item.id} className="p-4 flex items-center justify-between">
-                {editingId === item.id ? (
-                  /* Edit Form Row */
-                  <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 mr-4">
-                    {tab === 'members' ? (
-                      <>
-                        <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Name" />
-                        <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.role || ''} onChange={e => setEditForm({...editForm, role: e.target.value})} placeholder="Role" />
-                        <input className="bg-void-800 p-2 rounded text-sm text-white" type="number" value={editForm.year || ''} onChange={e => setEditForm({...editForm, year: parseInt(e.target.value)})} placeholder="Year" />
-                        <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.github_url || ''} onChange={e => setEditForm({...editForm, github_url: e.target.value})} placeholder="GitHub URL" />
-                      </>
+          /* ── Members / Projects Panel ── */
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="text-2xl font-bold capitalize">{tab} Management</h1>
+              <NeonButton
+                size="sm"
+                onClick={() => {
+                  setEditingId('new')
+                  setEditForm(tab === 'members' ? { is_active: true } : { is_active: true, featured: false })
+                }}
+                disabled={editingId !== null}
+              >
+                <Plus size={16} /> Add New
+              </NeonButton>
+            </div>
+
+            {isFetching ? (
+              <div className="text-slate-500">Loading data...</div>
+            ) : (
+              <div className="space-y-4">
+                {(tab === 'members' ? members : projects).map((item: any) => (
+                  <GlassCard key={item.id} className="p-4 flex items-center justify-between">
+                    {editingId === item.id ? (
+                      /* Edit Form Row */
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 mr-4">
+                        {tab === 'members' ? (
+                          <>
+                            <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Name" />
+                            <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.role || ''} onChange={e => setEditForm({...editForm, role: e.target.value})} placeholder="Role" />
+                            <input className="bg-void-800 p-2 rounded text-sm text-white" type="number" value={editForm.year || ''} onChange={e => setEditForm({...editForm, year: parseInt(e.target.value)})} placeholder="Year" />
+                            <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.github_url || ''} onChange={e => setEditForm({...editForm, github_url: e.target.value})} placeholder="GitHub URL" />
+                          </>
+                        ) : (
+                          <>
+                            <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} placeholder="Title" />
+                            <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.tags || ''} onChange={e => setEditForm({...editForm, tags: e.target.value})} placeholder="Tags (comma separated)" />
+                            <label className="flex items-center gap-2 text-sm text-slate-400">
+                              <input type="checkbox" checked={editForm.featured || false} onChange={e => setEditForm({...editForm, featured: e.target.checked})} className="rounded bg-void-800 border-void-700" />
+                              Featured
+                            </label>
+                          </>
+                        )}
+                      </div>
                     ) : (
-                      <>
-                        <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} placeholder="Title" />
-                        <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.tags || ''} onChange={e => setEditForm({...editForm, tags: e.target.value})} placeholder="Tags (comma separated)" />
-                        <label className="flex items-center gap-2 text-sm text-slate-400">
-                          <input type="checkbox" checked={editForm.featured || false} onChange={e => setEditForm({...editForm, featured: e.target.checked})} className="rounded bg-void-800 border-void-700" />
-                          Featured
-                        </label>
-                      </>
+                      /* Display Row */
+                      <div className="flex-1">
+                        <h3 className="font-bold text-white">{tab === 'members' ? item.name : item.title}</h3>
+                        <p className="text-sm text-slate-400">{tab === 'members' ? item.role : item.tags}</p>
+                      </div>
                     )}
-                  </div>
-                ) : (
-                  /* Display Row */
-                  <div className="flex-1">
-                    <h3 className="font-bold text-white">{tab === 'members' ? item.name : item.title}</h3>
-                    <p className="text-sm text-slate-400">{tab === 'members' ? item.role : item.tags}</p>
-                  </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                      {editingId === item.id ? (
+                        <>
+                          <button onClick={() => handleSave(tab as 'members' | 'projects')} className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg"><Save size={18} /></button>
+                          <button onClick={() => setEditingId(null)} className="p-2 text-slate-400 hover:bg-slate-500/10 rounded-lg"><X size={18} /></button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => { setEditingId(item.id); setEditForm(item) }} className="p-2 text-cyan-400 hover:bg-cyan-500/10 rounded-lg" disabled={editingId !== null}><Edit3 size={18} /></button>
+                          <button onClick={() => handleDelete(tab as 'members' | 'projects', item.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg" disabled={editingId !== null}><Trash2 size={18} /></button>
+                        </>
+                      )}
+                    </div>
+                  </GlassCard>
+                ))}
+
+                {/* Create New Form Row */}
+                {editingId === 'new' && (
+                  <GlassCard className="p-4 flex items-center justify-between border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 mr-4">
+                      {tab === 'members' ? (
+                        <>
+                          <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Name" />
+                          <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.role || ''} onChange={e => setEditForm({...editForm, role: e.target.value})} placeholder="Role" />
+                          <input className="bg-void-800 p-2 rounded text-sm text-white" type="number" value={editForm.year || ''} onChange={e => setEditForm({...editForm, year: parseInt(e.target.value)})} placeholder="Year" />
+                          <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.github_url || ''} onChange={e => setEditForm({...editForm, github_url: e.target.value})} placeholder="GitHub URL" />
+                        </>
+                      ) : (
+                        <>
+                          <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} placeholder="Title" />
+                          <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.tags || ''} onChange={e => setEditForm({...editForm, tags: e.target.value})} placeholder="Tags (comma separated)" />
+                          <label className="flex items-center gap-2 text-sm text-slate-400">
+                            <input type="checkbox" checked={editForm.featured || false} onChange={e => setEditForm({...editForm, featured: e.target.checked})} className="rounded bg-void-800 border-void-700" />
+                            Featured
+                          </label>
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleSave(tab as 'members' | 'projects')} className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg"><Save size={18} /></button>
+                      <button onClick={() => setEditingId(null)} className="p-2 text-slate-400 hover:bg-slate-500/10 rounded-lg"><X size={18} /></button>
+                    </div>
+                  </GlassCard>
                 )}
 
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  {editingId === item.id ? (
-                    <>
-                      <button onClick={() => handleSave(tab)} className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg"><Save size={18} /></button>
-                      <button onClick={() => setEditingId(null)} className="p-2 text-slate-400 hover:bg-slate-500/10 rounded-lg"><X size={18} /></button>
-                    </>
-                  ) : (
-                    <>
-                      <button onClick={() => { setEditingId(item.id); setEditForm(item) }} className="p-2 text-cyan-400 hover:bg-cyan-500/10 rounded-lg" disabled={editingId !== null}><Edit3 size={18} /></button>
-                      <button onClick={() => handleDelete(tab, item.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg" disabled={editingId !== null}><Trash2 size={18} /></button>
-                    </>
-                  )}
-                </div>
-              </GlassCard>
-            ))}
-
-            {/* Create New Form Row */}
-            {editingId === 'new' && (
-              <GlassCard className="p-4 flex items-center justify-between border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 mr-4">
-                  {tab === 'members' ? (
-                    <>
-                      <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Name" />
-                      <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.role || ''} onChange={e => setEditForm({...editForm, role: e.target.value})} placeholder="Role" />
-                      <input className="bg-void-800 p-2 rounded text-sm text-white" type="number" value={editForm.year || ''} onChange={e => setEditForm({...editForm, year: parseInt(e.target.value)})} placeholder="Year" />
-                      <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.github_url || ''} onChange={e => setEditForm({...editForm, github_url: e.target.value})} placeholder="GitHub URL" />
-                    </>
-                  ) : (
-                    <>
-                      <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} placeholder="Title" />
-                      <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.tags || ''} onChange={e => setEditForm({...editForm, tags: e.target.value})} placeholder="Tags (comma separated)" />
-                      <label className="flex items-center gap-2 text-sm text-slate-400">
-                        <input type="checkbox" checked={editForm.featured || false} onChange={e => setEditForm({...editForm, featured: e.target.checked})} className="rounded bg-void-800 border-void-700" />
-                        Featured
-                      </label>
-                    </>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => handleSave(tab)} className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg"><Save size={18} /></button>
-                  <button onClick={() => setEditingId(null)} className="p-2 text-slate-400 hover:bg-slate-500/10 rounded-lg"><X size={18} /></button>
-                </div>
-              </GlassCard>
-            )}
-
-            {(tab === 'members' ? members : projects).length === 0 && editingId !== 'new' && !isFetching && (
-              <div className="text-center py-12 text-slate-500">No {tab} found. Click Add New to create one.</div>
+                {(tab === 'members' ? members : projects).length === 0 && editingId !== 'new' && !isFetching && (
+                  <div className="text-center py-12 text-slate-500">No {tab} found. Click Add New to create one.</div>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -234,3 +295,4 @@ export default function AdminDashboard() {
     </div>
   )
 }
+
