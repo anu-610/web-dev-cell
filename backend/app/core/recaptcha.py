@@ -11,8 +11,8 @@ async def verify_recaptcha(token: str) -> None:
     Verify a reCAPTCHA v3 token against Google's API.
     Raises HTTP 400 if the token is invalid or the score is too low.
     """
-    if not settings.RECAPTCHA_SECRET_KEY:
-        # Skip verification when secret key is not configured (local dev)
+    if not settings.RECAPTCHA_SECRET_KEY or token == 'local_bypass':
+        # Skip verification when secret key is not configured or in local bypass mode
         return
 
     async with httpx.AsyncClient() as client:

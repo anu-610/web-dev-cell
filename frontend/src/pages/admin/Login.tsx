@@ -24,12 +24,16 @@ function LoginForm() {
     setError('')
 
     try {
-      // 1. Execute reCAPTCHA
-      if (!executeRecaptcha) {
-        throw new Error('reCAPTCHA is not loaded yet. Please try again.')
-      }
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      let token = 'local_bypass'
 
-      const token = await executeRecaptcha('admin_login')
+      // 1. Execute reCAPTCHA if not local
+      if (!isLocalhost) {
+        if (!executeRecaptcha) {
+          throw new Error('reCAPTCHA is not loaded yet. Please try again.')
+        }
+        token = await executeRecaptcha('admin_login')
+      }
 
       // 2. Verify token with our backend
       await apiFetch('/settings/verify-recaptcha', {
