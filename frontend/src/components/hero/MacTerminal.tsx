@@ -95,112 +95,106 @@ export default function MacTerminal() {
       initial={{ opacity: 0, x: 60, y: 20 }}
       animate={{ opacity: fading ? 0 : 1, x: 0, y: 0 }}
       transition={{ duration: 0.9, ease: 'easeOut' }}
-      className="hidden md:flex flex-shrink-0 items-center justify-center"
-      style={{ width: '100%', maxWidth: '680px' }}
+      className="hidden md:flex w-full flex-shrink-0 items-center justify-end"
     >
       {/* 3D tilt wrapper */}
       <div
         className="w-full pointer-events-none select-none"
         style={{
           transformStyle: 'preserve-3d',
-          transform: 'perspective(900px) rotateY(-18deg) rotateX(-3deg)',
+          transform: 'perspective(1000px) rotateY(-18deg) rotateX(-3deg)',
           boxShadow: `
-            24px 24px 70px rgba(0,0,0,0.75),
-            48px 48px 120px rgba(0,0,0,0.5),
-            -4px -4px 30px rgba(6,182,212,0.08),
-            0 0 100px rgba(6,182,212,0.05)
+            28px 28px 80px rgba(0,0,0,0.8),
+            56px 56px 140px rgba(0,0,0,0.55),
+            0 0 120px rgba(6,182,212,0.06)
           `,
-          borderRadius: '14px',
+          borderRadius: '16px',
         }}
       >
-        {/* Glass border glow ring */}
+        {/*
+          Glass border shell — the trick:
+          A 2px gradient "padding" acts as the border.
+          The gradient goes from bright white (top-left highlight) to
+          cyan-tinted (bottom-right) — like light hitting frosted glass.
+          backdrop-filter on this shell blurs whatever is behind it,
+          giving the frosted / glassmorphism look at the border itself.
+        */}
         <div
-          className="rounded-[14px] overflow-hidden"
           style={{
-            background: '#1a1b26',
-            border: '1px solid rgba(255,255,255,0.10)',
-            boxShadow: '0 0 0 1px rgba(6,182,212,0.08) inset, 0 0 60px rgba(6,182,212,0.06) inset',
+            borderRadius: '16px',
+            padding: '2px',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.08) 40%, rgba(6,182,212,0.25) 100%)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            boxShadow: `
+              inset 0 1.5px 0 rgba(255,255,255,0.18),
+              inset 0 -1px 0 rgba(255,255,255,0.05),
+              0 0 50px rgba(6,182,212,0.14),
+              0 0 80px rgba(124,58,237,0.08)
+            `,
           }}
         >
-          {/* ── Title bar ── */}
-          <div
-            className="flex items-center gap-2 px-4 py-3 border-b border-white/5"
-            style={{
-              background: 'linear-gradient(180deg, #2a2d3e 0%, #24283b 100%)',
-            }}
-          >
-            <span className="w-3 h-3 rounded-full" style={{ background: '#ff5f57' }} />
-            <span className="w-3 h-3 rounded-full" style={{ background: '#febc2e' }} />
-            <span className="w-3 h-3 rounded-full" style={{ background: '#28c840' }} />
-            <div className="flex-1 text-center">
-              <span className="text-xs text-slate-400 font-mono tracking-wide">~/dev-cell</span>
-            </div>
-          </div>
+          {/* Inner card */}
+          <div className="rounded-[14px] overflow-hidden" style={{ background: '#1a1b26' }}>
 
-          {/* ── Terminal body with glassy edge fade ── */}
-          <div className="relative" style={{ background: '#1a1b26' }}>
+            {/* ── Title bar ── */}
             <div
-              ref={bodyRef}
-              className="p-5 font-mono text-[13px] sm:text-sm leading-relaxed"
-              style={{ minHeight: '380px', maxHeight: '460px', overflowY: 'hidden' }}
+              className="flex items-center gap-2 px-4 py-3 border-b"
+              style={{
+                background: 'linear-gradient(180deg, #2a2d3e 0%, #24283b 100%)',
+                borderColor: 'rgba(255,255,255,0.06)',
+              }}
             >
-              {lines.map((line) =>
-                line.type === 'blank' ? (
-                  <div key={line.id} className="h-3" />
-                ) : (
-                  <div key={line.id} className="mb-0.5">
-                    <span
-                      className={`${LINE_COLORS[line.type]} block overflow-hidden whitespace-nowrap`}
-                      style={
-                        line.type === 'cmd'
-                          ? {
-                              width: '0',
-                              animation: `terminal-typing ${line.charCount * 75}ms steps(${line.charCount}, end) forwards`,
-                            }
-                          : undefined
-                      }
-                    >
-                      {line.text}
-                    </span>
-                  </div>
-                )
-              )}
-              {/* Blinking cursor */}
-              <span className="inline-block w-[7px] h-[15px] bg-cyan-400/80 terminal-cursor align-middle mt-0.5" />
+              <span className="w-3 h-3 rounded-full" style={{ background: '#ff5f57', boxShadow: '0 0 6px rgba(255,95,87,0.7)' }} />
+              <span className="w-3 h-3 rounded-full" style={{ background: '#febc2e', boxShadow: '0 0 6px rgba(254,188,46,0.6)' }} />
+              <span className="w-3 h-3 rounded-full" style={{ background: '#28c840', boxShadow: '0 0 6px rgba(40,200,64,0.6)' }} />
+              <div className="flex-1 text-center">
+                <span className="text-xs text-slate-400 font-mono tracking-wide">~/dev-cell</span>
+              </div>
             </div>
 
-            {/* Glassy edge fade — top */}
-            <div
-              className="absolute top-0 left-0 right-0 pointer-events-none"
-              style={{
-                height: '48px',
-                background: 'linear-gradient(to bottom, #1a1b26 0%, transparent 100%)',
-              }}
-            />
-            {/* Glassy edge fade — bottom */}
-            <div
-              className="absolute bottom-0 left-0 right-0 pointer-events-none"
-              style={{
-                height: '72px',
-                background: 'linear-gradient(to top, rgba(26,27,38,0.98) 0%, transparent 100%)',
-              }}
-            />
-            {/* Glassy edge fade — left */}
-            <div
-              className="absolute top-0 bottom-0 left-0 pointer-events-none"
-              style={{
-                width: '32px',
-                background: 'linear-gradient(to right, rgba(26,27,38,0.6) 0%, transparent 100%)',
-              }}
-            />
-            {/* Glassy edge fade — right */}
-            <div
-              className="absolute top-0 bottom-0 right-0 pointer-events-none"
-              style={{
-                width: '48px',
-                background: 'linear-gradient(to left, rgba(26,27,38,0.85) 0%, transparent 100%)',
-              }}
-            />
+            {/* ── Terminal body ── */}
+            <div className="relative" style={{ background: '#1a1b26' }}>
+              <div
+                ref={bodyRef}
+                className="px-6 py-5 font-mono text-[13px] sm:text-sm leading-relaxed"
+                style={{ minHeight: '400px', maxHeight: '480px', overflowY: 'hidden' }}
+              >
+                {lines.map((line) =>
+                  line.type === 'blank' ? (
+                    <div key={line.id} className="h-3" />
+                  ) : (
+                    <div key={line.id} className="mb-0.5">
+                      <span
+                        className={`${LINE_COLORS[line.type]} block overflow-hidden whitespace-nowrap`}
+                        style={
+                          line.type === 'cmd'
+                            ? {
+                                width: '0',
+                                animation: `terminal-typing ${line.charCount * 75}ms steps(${line.charCount}, end) forwards`,
+                              }
+                            : undefined
+                        }
+                      >
+                        {line.text}
+                      </span>
+                    </div>
+                  )
+                )}
+                <span className="inline-block w-[7px] h-[15px] bg-cyan-400/80 terminal-cursor align-middle mt-0.5" />
+              </div>
+
+              {/* Edge fades — dissolve content into background at all four sides */}
+              <div className="absolute top-0 left-0 right-0 pointer-events-none"
+                style={{ height: '48px', background: 'linear-gradient(to bottom, #1a1b26, transparent)' }} />
+              <div className="absolute bottom-0 left-0 right-0 pointer-events-none"
+                style={{ height: '80px', background: 'linear-gradient(to top, rgba(26,27,38,0.98), transparent)' }} />
+              <div className="absolute top-0 bottom-0 left-0 pointer-events-none"
+                style={{ width: '32px', background: 'linear-gradient(to right, rgba(26,27,38,0.7), transparent)' }} />
+              <div className="absolute top-0 bottom-0 right-0 pointer-events-none"
+                style={{ width: '56px', background: 'linear-gradient(to left, rgba(26,27,38,0.9), transparent)' }} />
+            </div>
+
           </div>
         </div>
       </div>

@@ -55,7 +55,7 @@ export default function Hero() {
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-16 flex flex-col md:flex-row items-center gap-10 md:gap-6 py-24 md:py-0 min-h-screen">
 
         {/* ── LEFT: Content ── */}
-        <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1 md:max-w-[55%]">
+        <div className="flex flex-col items-center md:items-start text-center md:text-left flex-1 md:max-w-[48%]">
 
           {/* Badge */}
           <motion.div
@@ -134,7 +134,7 @@ export default function Hero() {
         </div>
 
         {/* ── RIGHT: macOS Terminal (desktop only, managed internally) ── */}
-        <div className="flex-1 flex items-center justify-center md:justify-end md:max-w-[48%]">
+        <div className="flex-1 flex items-center justify-center md:justify-end md:max-w-[52%]">
           <MacTerminal />
         </div>
       </div>
