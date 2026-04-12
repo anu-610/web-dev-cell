@@ -52,10 +52,10 @@ export default function Hero() {
         style={{ background: 'radial-gradient(ellipse 80% 80% at 50% 50%, transparent 30%, rgba(2,8,23,0.6) 100%)' }} />
 
       {/* ── Main layout: text left | terminal right ── */}
-      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 sm:px-10 md:px-12 flex flex-col md:flex-row items-center gap-10 md:gap-8 py-24 md:py-0 min-h-screen">
+      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 sm:px-10 md:px-12 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-12 lg:gap-8 py-32 lg:py-0 min-h-screen">
 
         {/* ── LEFT: Content ── */}
-        <div className="flex flex-col items-center md:items-start text-center md:text-left w-full md:w-[38%] shrink-0">
+        <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:w-[45%] xl:w-[40%] shrink-0 mt-10 lg:mt-0">
 
           {/* Badge */}
           <motion.div
@@ -103,7 +103,7 @@ export default function Hero() {
           <motion.div
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.9 }}
-            className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3 w-full sm:w-auto mb-12"
+            className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 w-full sm:w-auto mb-12"
           >
             <NeonButton size="md" className="w-full sm:w-auto" onClick={() => go('projects')}>
               <Globe size={16} /> Explore Projects
@@ -117,14 +117,14 @@ export default function Hero() {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.2 }}
-            className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-5"
+            className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-x-8 gap-y-5"
           >
             {STATS.map((s, i) => (
               <motion.div
                 key={s.label}
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.2 + i * 0.1 }}
-                className="text-center md:text-left"
+                className="text-center lg:text-left"
               >
                 <div className="text-2xl sm:text-3xl font-black gradient-text">{s.value}</div>
                 <div className="text-[10px] sm:text-xs text-slate-500 tracking-wider uppercase mt-0.5">{s.label}</div>
@@ -134,7 +134,7 @@ export default function Hero() {
         </div>
 
         {/* ── RIGHT: macOS Terminal (desktop only, managed internally) ── */}
-        <div className="flex-1 flex items-center justify-center md:justify-end min-w-0">
+        <div className="flex-1 flex items-center justify-center lg:justify-end min-w-0 w-full max-w-[800px] lg:max-w-none mb-20 lg:mb-0">
           <MacTerminal />
         </div>
       </div>
