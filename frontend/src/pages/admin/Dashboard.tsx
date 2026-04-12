@@ -109,9 +109,16 @@ export default function AdminDashboard() {
 
   const handlePostStatus = async (id: string, status: 'approved' | 'rejected') => {
     try {
+      let rejection_reason = undefined
+      if (status === 'rejected') {
+        const reason = window.prompt("Reason for rejection:")
+        if (reason === null) return // Cancelled
+        rejection_reason = reason
+      }
+
       await apiFetch(`/posts/${id}/status`, {
         method: 'PATCH',
-        data: { status }
+        data: { status, rejection_reason }
       })
       fetchData()
     } catch (e) {

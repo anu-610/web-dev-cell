@@ -195,6 +195,10 @@ async def update_post(
 
     if not is_admin:
         post.status = "pending"
+        post.rejection_reason = None
+    else:
+        post.status = "approved"
+        post.rejection_reason = None
 
     await db.commit()
     await db.refresh(post)
@@ -219,6 +223,11 @@ async def update_post_status(
         raise HTTPException(status_code=404, detail="Post not found")
 
     post.status = body.status
+    if body.status == "rejected" and body.rejection_reason:
+        post.rejection_reason = body.rejection_reason.strip()
+    elif body.status == "approved":
+        post.rejection_reason = None
+
     await db.commit()
     await db.refresh(post)
     return post

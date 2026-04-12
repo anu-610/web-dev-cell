@@ -16,6 +16,7 @@ interface Post {
   thumbnail_url: string
   created_at: string
   status?: string
+  rejection_reason?: string
 }
 
 export default function Posts() {
@@ -131,7 +132,7 @@ export default function Posts() {
 
                 {tab === 'my' && post.status && (
                   <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-lg backdrop-blur-md border ${
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-lg backdrop-blur-md border w-fit ${
                       post.status === 'approved' ? 'bg-emerald-500/90 text-white border-emerald-400/50' :
                       post.status === 'rejected' ? 'bg-red-500/90 text-white border-red-400/50' :
                       'bg-amber-500/90 text-white border-amber-400/50'
@@ -141,6 +142,12 @@ export default function Posts() {
                       {post.status === 'pending' && <Clock size={12} />}
                       {post.status}
                     </span>
+                    {post.status === 'rejected' && post.rejection_reason && (
+                      <div className="text-xs bg-void-950/90 text-red-400 p-2 rounded-lg border border-red-500/30 backdrop-blur-md shadow-lg max-w-[200px]">
+                        <span className="font-bold block mb-1">Reason:</span>
+                        {post.rejection_reason}
+                      </div>
+                    )}
                   </div>
                 )}
 

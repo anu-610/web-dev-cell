@@ -119,6 +119,7 @@ class Post(Base):
         String(20), nullable=False, server_default="pending",
         comment="pending | approved | rejected",
     )
+    rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

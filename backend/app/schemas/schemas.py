@@ -103,6 +103,7 @@ class PostOut(BaseModel):
     category: str
     thumbnail_url: str
     status: str
+    rejection_reason: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -111,6 +112,7 @@ class PostOut(BaseModel):
 
 class PostStatusUpdate(BaseModel):
     status: str  # "approved" | "rejected"
+    rejection_reason: str | None = None
 
 
 # ── Announcement ──────────────────────────────────────────────────────────────
