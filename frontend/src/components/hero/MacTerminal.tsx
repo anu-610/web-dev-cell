@@ -95,8 +95,8 @@ export default function MacTerminal() {
       initial={{ opacity: 0, x: 60, y: 20 }}
       animate={{ opacity: fading ? 0 : 1, x: 0, y: 0 }}
       transition={{ duration: 0.9, ease: 'easeOut' }}
-      className="hidden md:flex flex-shrink-0 items-center justify-end relative"
-      style={{ width: '880px', maxWidth: '120%' }}
+      className="hidden md:flex flex-shrink-0 items-center justify-end relative w-full"
+      style={{ maxWidth: '880px' }}
     >
       {/* 3D tilt wrapper */}
       <div

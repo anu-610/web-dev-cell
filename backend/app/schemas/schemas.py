@@ -13,6 +13,7 @@ class MemberBase(BaseModel):
     year: int | None = None
     github_url: str | None = None
     linkedin_url: str | None = None
+    instagram_url: str | None = None
     avatar_url: str | None = None
     is_active: bool = True
 
@@ -28,6 +29,7 @@ class MemberUpdate(BaseModel):
     year: int | None = None
     github_url: str | None = None
     linkedin_url: str | None = None
+    instagram_url: str | None = None
     avatar_url: str | None = None
     is_active: bool | None = None
 
@@ -47,6 +49,7 @@ class ProjectBase(BaseModel):
     title: str
     description: str | None = None
     tags: str | None = None
+    thumbnail_url: str | None = None
     github_url: str | None = None
     live_url: str | None = None
     featured: bool = False
@@ -61,6 +64,7 @@ class ProjectUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
     tags: str | None = None
+    thumbnail_url: str | None = None
     github_url: str | None = None
     live_url: str | None = None
     featured: bool | None = None
@@ -139,8 +143,17 @@ class AnnouncementOut(AnnouncementBase):
 class ThemeOut(BaseModel):
     theme: str
 
+class SiteSettingsOut(BaseModel):
+    hero_theme: str
+    show_github_stats: bool
+    github_repo: str | None
+
     model_config = ConfigDict(from_attributes=True)
 
+class SiteSettingsUpdate(BaseModel):
+    hero_theme: str | None = None
+    show_github_stats: bool | None = None
+    github_repo: str | None = None
 
 class ThemeUpdate(BaseModel):
     theme: str
