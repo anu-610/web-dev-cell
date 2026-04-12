@@ -6,6 +6,7 @@ import Login from '@/pages/admin/Login'
 import Dashboard from '@/pages/admin/Dashboard'
 import ThemeSwitcher from '@/components/hero/ThemeSwitcher'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/themeStore'
 
 function PublicLayout() {
   return (
@@ -19,12 +20,12 @@ function PublicLayout() {
 
 function AppInner() {
   const { checkSession } = useAuthStore()
+  const { fetchTheme } = useThemeStore()
 
-  // Check for existing Supabase session on every page load
-  // so isAdmin is correctly set on the public home page too
   useEffect(() => {
     checkSession()
-  }, [checkSession])
+    fetchTheme() // pull the DB-authoritative theme on every page load
+  }, [checkSession, fetchTheme])
 
   return (
     <Routes>
