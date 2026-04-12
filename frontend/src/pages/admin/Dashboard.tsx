@@ -102,18 +102,6 @@ export default function AdminDashboard() {
     return new Date(d.getTime() - tzOffset).toISOString().substring(0, 16)
   }
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value
-    if (!val) {
-      setEditForm({ ...editForm, end_date: null })
-    } else {
-      const d = new Date(val)
-      if (!isNaN(d.getTime())) {
-        setEditForm({ ...editForm, end_date: d.toISOString() })
-      }
-    }
-  }
-
   const handleLogout = async () => {
     await logout()
     navigate('/admin/login')
@@ -147,10 +135,15 @@ export default function AdminDashboard() {
           await apiFetch(`/projects/${editingId}`, { method: 'PATCH', data: editForm })
         }
       } else if (type === 'announcements') {
+        const payload = { ...editForm }
+        if (payload.end_date_local) {
+          payload.end_date = new Date(payload.end_date_local).toISOString()
+          delete payload.end_date_local
+        }
         if (editingId === 'new') {
-          await apiFetch('/announcements', { method: 'POST', data: editForm })
+          await apiFetch('/announcements', { method: 'POST', data: payload })
         } else {
-          await apiFetch(`/announcements/${editingId}`, { method: 'PATCH', data: editForm })
+          await apiFetch(`/announcements/${editingId}`, { method: 'PATCH', data: payload })
         }
       }
       setEditingId(null)
@@ -412,7 +405,7 @@ export default function AdminDashboard() {
                     title: '',
                     message: '',
                     link_url: '',
-                    end_date: new Date(Date.now() + 86400000).toISOString().split('T')[0] + 'T23:59',
+                    end_date_local: new Date(Date.now() + 86400000).toISOString().split('T')[0] + 'T23:59',
                     is_active: true
                   })
                 }}
@@ -435,7 +428,7 @@ export default function AdminDashboard() {
                         <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.message || ''} onChange={e => setEditForm({...editForm, message: e.target.value})} placeholder="Message" />
                         <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="Link URL (optional)" />
                         <div className="flex flex-col gap-2">
-                          <input type="datetime-local" className="bg-void-800 p-2 rounded text-sm text-white" value={toLocalDatetimeLocal(editForm.end_date)} onChange={handleDateChange} />
+                          <input type="datetime-local" className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.end_date_local || ''} onChange={e => setEditForm({...editForm, end_date_local: e.target.value})} />
                           <label className="flex items-center gap-2 text-sm text-slate-400">
                             <input type="checkbox" checked={editForm.is_active || false} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="rounded bg-void-800 border-void-700" />
                             Active Popup
@@ -469,7 +462,13 @@ export default function AdminDashboard() {
                         </>
                       ) : (
                         <>
-                          <button onClick={() => { setEditingId(item.id); setEditForm(item) }} className="p-2 text-cyan-400 hover:bg-cyan-500/10 rounded-lg" disabled={editingId !== null}><Edit3 size={18} /></button>
+                          <button onClick={() => {
+                            setEditingId(item.id);
+                            setEditForm({
+                              ...item,
+                              end_date_local: toLocalDatetimeLocal(item.end_date)
+                            })
+                          }} className="p-2 text-cyan-400 hover:bg-cyan-500/10 rounded-lg" disabled={editingId !== null}><Edit3 size={18} /></button>
                           <button onClick={() => handleDelete('announcements', item.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg" disabled={editingId !== null}><Trash2 size={18} /></button>
                         </>
                       )}
@@ -485,7 +484,7 @@ export default function AdminDashboard() {
                       <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.message || ''} onChange={e => setEditForm({...editForm, message: e.target.value})} placeholder="Message" />
                       <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="Link URL (optional)" />
                       <div className="flex flex-col gap-2">
-                        <input type="datetime-local" className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.end_date?.substring(0, 16) || ''} onChange={e => setEditForm({...editForm, end_date: new Date(e.target.value).toISOString()})} />
+                        <input type="datetime-local" className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.end_date_local || ''} onChange={e => setEditForm({...editForm, end_date_local: e.target.value})} />
                         <label className="flex items-center gap-2 text-sm text-slate-400">
                           <input type="checkbox" checked={editForm.is_active || false} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="rounded bg-void-800 border-void-700" />
                           Active Popup
