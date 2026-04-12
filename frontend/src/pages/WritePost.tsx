@@ -118,7 +118,7 @@ function WritePostForm() {
         }
       })
     }
-  }, [])
+  }, [initialLoad]) // Re-run this effect when initialLoad completes so the editor mounts
 
   useEffect(() => {
     if (isEditMode) {
@@ -129,10 +129,15 @@ function WritePostForm() {
         setOriginalThumbnailUrl(post.thumbnail_url)
         setThumbnailPreview(post.thumbnail_url)
 
-        if (quillRef.current) {
-          quillRef.current.root.innerHTML = post.content
-        }
         setInitialLoad(false)
+
+        // Wait a tick for React to render the div, then initialize Quill
+        setTimeout(() => {
+          if (quillRef.current) {
+            quillRef.current.root.innerHTML = post.content
+          }
+        }, 50)
+
       }).catch(err => {
         setError("Failed to load post for editing.")
         setInitialLoad(false)
