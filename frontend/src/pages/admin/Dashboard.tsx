@@ -6,8 +6,8 @@ import { useAuthStore } from '@/stores/auth'
 import { apiFetch } from '@/lib/api'
 import NeonButton from '@/components/ui/NeonButton'
 import GlassCard from '@/components/ui/GlassCard'
-import type { TeamMember } from '@/data/team'
-import type { Project } from '@/data/projects'
+import type { TeamMember } from '@/components/sections/Team'
+import type { Project } from '@/components/sections/Projects'
 
 type Tab = 'members' | 'projects'
 
