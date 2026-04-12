@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, Users, FolderKanban, Terminal, Plus, Trash2, Edit3, Save, X, Palette, FileText, CheckCircle, XCircle } from 'lucide-react'
+import { LogOut, Users, FolderKanban, Terminal, Plus, Trash2, Edit3, Save, X, Palette, FileText, CheckCircle, XCircle, Bell } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/stores/auth'
 import { apiFetch } from '@/lib/api'
@@ -10,7 +10,7 @@ import { useThemeStore, type HeroTheme } from '@/stores/themeStore'
 import type { TeamMember } from '@/components/sections/Team'
 import type { Project } from '@/components/sections/Projects'
 
-type Tab = 'members' | 'projects' | 'theme' | 'posts'
+type Tab = 'members' | 'projects' | 'theme' | 'posts' | 'announcements'
 
 const THEMES: { id: HeroTheme; label: string; icon: string; desc: string }[] = [
   { id: 'aurora',  icon: '🌌', label: 'Aurora',  desc: 'Floating particle field with animated aurora glow blobs' },
@@ -27,6 +27,7 @@ export default function AdminDashboard() {
   const [members, setMembers] = useState<TeamMember[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [posts, setPosts] = useState<any[]>([])
+  const [announcements, setAnnouncements] = useState<any[]>([])
   const [isFetching, setIsFetching] = useState(true)
 
   // Edit states
@@ -50,14 +51,16 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setIsFetching(true)
     try {
-      const [m, p, po] = await Promise.all([
+      const [m, p, po, ann] = await Promise.all([
         apiFetch<TeamMember[]>('/members'),
         apiFetch<Project[]>('/projects'),
-        apiFetch<any[]>('/posts/admin/all')
+        apiFetch<any[]>('/posts/admin/all'),
+        apiFetch<any[]>('/announcements')
       ])
       setMembers(m)
       setProjects(p)
       setPosts(po)
+      setAnnouncements(ann)
     } catch (e) {
       console.error(e)
     } finally {
@@ -96,6 +99,12 @@ export default function AdminDashboard() {
           await apiFetch('/projects/', { method: 'POST', data: editForm })
         } else {
           await apiFetch(`/projects/${editingId}`, { method: 'PATCH', data: editForm })
+        }
+      } else if (type === 'announcements') {
+        if (editingId === 'new') {
+          await apiFetch('/announcements/', { method: 'POST', data: editForm })
+        } else {
+          await apiFetch(`/announcements/${editingId}`, { method: 'PATCH', data: editForm })
         }
       }
       setEditingId(null)
@@ -148,6 +157,12 @@ export default function AdminDashboard() {
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${tab === 'posts' ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
             <FileText size={18} /> Blog Posts
+          </button>
+          <button
+            onClick={() => { setTab('announcements'); setEditingId(null) }}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${tab === 'announcements' ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <Bell size={18} /> Announcements
           </button>
           <button
             onClick={() => { setTab('theme'); setEditingId(null) }}
@@ -281,6 +296,115 @@ export default function AdminDashboard() {
 
                 {posts.length === 0 && !isFetching && (
                   <div className="text-center py-12 text-slate-500">No blog posts found.</div>
+                )}
+              </div>
+            )}
+          </div>
+        ) : tab === 'announcements' ? (
+          /* ── Announcements Panel ── */
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <Bell size={22} className="text-cyan-400" />
+                <h1 className="text-2xl font-bold">Announcements</h1>
+              </div>
+              <NeonButton
+                size="sm"
+                onClick={() => {
+                  setEditingId('new')
+                  setEditForm({
+                    title: '',
+                    message: '',
+                    link_url: '',
+                    end_date: new Date(Date.now() + 86400000).toISOString().split('T')[0] + 'T23:59',
+                    is_active: true
+                  })
+                }}
+                disabled={editingId !== null}
+              >
+                <Plus size={16} /> Add New
+              </NeonButton>
+            </div>
+
+            {isFetching ? (
+              <div className="text-slate-500">Loading announcements...</div>
+            ) : (
+              <div className="space-y-4">
+                {announcements.map((item: any) => (
+                  <GlassCard key={item.id} className="p-4 flex items-center justify-between">
+                    {editingId === item.id ? (
+                      /* Edit Form Row */
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mr-4">
+                        <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} placeholder="Title" />
+                        <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.message || ''} onChange={e => setEditForm({...editForm, message: e.target.value})} placeholder="Message" />
+                        <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="Link URL (optional)" />
+                        <div className="flex flex-col gap-2">
+                          <input type="datetime-local" className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.end_date?.substring(0, 16) || ''} onChange={e => setEditForm({...editForm, end_date: new Date(e.target.value).toISOString()})} />
+                          <label className="flex items-center gap-2 text-sm text-slate-400">
+                            <input type="checkbox" checked={editForm.is_active || false} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="rounded bg-void-800 border-void-700" />
+                            Active Popup
+                          </label>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Display Row */
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${
+                            item.is_active && new Date(item.end_date).getTime() >= Date.now()
+                              ? 'bg-emerald-500/20 text-emerald-400'
+                              : 'bg-slate-500/20 text-slate-400'
+                          }`}>
+                            {item.is_active && new Date(item.end_date).getTime() >= Date.now() ? 'Active' : 'Inactive / Expired'}
+                          </span>
+                          <span className="text-xs text-slate-400">Ends: {new Date(item.end_date).toLocaleString()}</span>
+                        </div>
+                        <h3 className="font-bold text-white mb-1">{item.title}</h3>
+                        <p className="text-sm text-slate-400 line-clamp-1">{item.message}</p>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {editingId === item.id ? (
+                        <>
+                          <button onClick={() => handleSave('announcements')} className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg"><Save size={18} /></button>
+                          <button onClick={() => setEditingId(null)} className="p-2 text-slate-400 hover:bg-slate-500/10 rounded-lg"><X size={18} /></button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => { setEditingId(item.id); setEditForm(item) }} className="p-2 text-cyan-400 hover:bg-cyan-500/10 rounded-lg" disabled={editingId !== null}><Edit3 size={18} /></button>
+                          <button onClick={() => handleDelete('announcements', item.id)} className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg" disabled={editingId !== null}><Trash2 size={18} /></button>
+                        </>
+                      )}
+                    </div>
+                  </GlassCard>
+                ))}
+
+                {/* Create New Form Row */}
+                {editingId === 'new' && (
+                  <GlassCard className="p-4 flex items-center justify-between border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mr-4">
+                      <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.title || ''} onChange={e => setEditForm({...editForm, title: e.target.value})} placeholder="Title" />
+                      <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.message || ''} onChange={e => setEditForm({...editForm, message: e.target.value})} placeholder="Message" />
+                      <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="Link URL (optional)" />
+                      <div className="flex flex-col gap-2">
+                        <input type="datetime-local" className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.end_date?.substring(0, 16) || ''} onChange={e => setEditForm({...editForm, end_date: new Date(e.target.value).toISOString()})} />
+                        <label className="flex items-center gap-2 text-sm text-slate-400">
+                          <input type="checkbox" checked={editForm.is_active || false} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="rounded bg-void-800 border-void-700" />
+                          Active Popup
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button onClick={() => handleSave('announcements')} className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg"><Save size={18} /></button>
+                      <button onClick={() => setEditingId(null)} className="p-2 text-slate-400 hover:bg-slate-500/10 rounded-lg"><X size={18} /></button>
+                    </div>
+                  </GlassCard>
+                )}
+
+                {announcements.length === 0 && editingId !== 'new' && !isFetching && (
+                  <div className="text-center py-12 text-slate-500">No announcements found.</div>
                 )}
               </div>
             )}
