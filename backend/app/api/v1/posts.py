@@ -97,6 +97,36 @@ async def admin_list_posts(
     return result.scalars().all()
 
 
+# ── Admin: Update post content/metadata ───────────────────────────────────────
+
+from pydantic import BaseModel
+class PostAdminUpdate(BaseModel):
+    title: str | None = None
+    content: str | None = None
+    author_name: str | None = None
+    category: str | None = None
+    thumbnail_url: str | None = None
+
+@router.patch("/{post_id}", response_model=PostOut)
+async def update_post(
+    post_id: uuid.UUID,
+    body: PostAdminUpdate,
+    db: AsyncSession = Depends(get_db),
+    _: dict = Depends(require_admin),
+):
+    """Admin — update post metadata and content."""
+    post = await db.get(Post, post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    for field, value in body.model_dump(exclude_none=True).items():
+        setattr(post, field, value)
+
+    await db.commit()
+    await db.refresh(post)
+    return post
+
+
 # ── Admin: Approve or reject a post ───────────────────────────────────────────
 
 @router.patch("/{post_id}/status", response_model=PostOut)
