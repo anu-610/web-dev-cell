@@ -14,7 +14,26 @@ import { supabase } from '@/lib/supabase'
 const CATEGORIES = ["vulnerability", "new-feature", "tutorial", "news", "announcement", "other"]
 
 function GoogleSignInBlock() {
+  const [oauthError, setOauthError] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Supabase appends OAuth errors to the URL hash (e.g. #error=server_error&error_description=...)
+    const hash = window.location.hash
+    if (hash && hash.includes('error=')) {
+      const params = new URLSearchParams(hash.replace('#', '?'))
+      const errDesc = params.get('error_description')
+      if (errDesc) {
+        // Clean up the error message from Postgres trigger formatting if needed
+        const cleanError = errDesc.replace(/\+/g, ' ').replace(/^.*EXCEPTION:\s*/, '')
+        setOauthError(cleanError || 'Authentication failed. Please try again.')
+      }
+      // Remove hash from URL to keep it clean
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
+  }, [])
+
   const handleGoogleLogin = async () => {
+    setOauthError(null)
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -27,6 +46,14 @@ function GoogleSignInBlock() {
     <div className="max-w-md mx-auto text-center mt-12">
       <GlassCard className="p-8">
         <h2 className="text-2xl font-bold mb-4">Student Login Required</h2>
+
+        {oauthError && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3 text-red-400 text-left">
+            <AlertCircle size={20} className="shrink-0 mt-0.5" />
+            <span className="text-sm font-medium">{oauthError}</span>
+          </div>
+        )}
+
         <p className="text-slate-400 mb-8 leading-relaxed">
           You must be an active student of IIT Mandi to publish a post on the WebDevCell blog.
         </p>
