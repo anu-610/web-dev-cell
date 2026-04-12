@@ -51,7 +51,7 @@ function LoginForm() {
         throw new Error(supaError.message)
       } else if (data.session) {
         setAuth(data.session.access_token, true)
-        navigate('/admin')
+        window.location.href = '/admin' // Force reload to trigger session checks properly
       }
     } catch (err: any) {
       setError(err.message || 'Login failed.')
