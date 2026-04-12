@@ -117,11 +117,11 @@ export default function AdminDashboard() {
   }
 
   if (loading || !token) {
-    return <div className="min-h-screen bg-void-950 flex items-center justify-center text-cyan-400">Verifying session...</div>
+    return <div className="min-h-[calc(100vh-4rem)] bg-void-950 flex items-center justify-center text-cyan-400">Verifying session...</div>
   }
 
   return (
-    <div className="min-h-screen bg-void-950 text-white flex flex-col md:flex-row">
+    <div className="min-h-[calc(100vh-4rem)] bg-void-950 text-white flex flex-col md:flex-row">
       {/* Sidebar */}
       <aside className="w-full md:w-64 glass-strong border-r border-white/5 flex flex-col">
         <div className="p-6 border-b border-white/5 flex items-center gap-2">
@@ -215,6 +215,12 @@ export default function AdminDashboard() {
                 <FileText size={22} className="text-cyan-400" />
                 <h1 className="text-2xl font-bold">Blog Posts Moderation</h1>
               </div>
+              <NeonButton
+                size="sm"
+                onClick={() => navigate('/posts/new')}
+              >
+                <Plus size={16} /> Add New
+              </NeonButton>
             </div>
 
             {isFetching ? (
@@ -255,6 +261,13 @@ export default function AdminDashboard() {
                           </button>
                         </>
                       )}
+                      <button
+                        onClick={() => navigate(`/posts/edit/${post.id}`)}
+                        className="p-2 text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                        title="Edit Post"
+                      >
+                        <Edit3 size={18} />
+                      </button>
                       <button
                         onClick={() => handleDelete('posts', post.id)}
                         className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"

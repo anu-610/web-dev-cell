@@ -35,7 +35,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-void-950 flex flex-col items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-4rem)] bg-void-950 flex flex-col items-center justify-center p-4">
       {/* Branding */}
       <div className="mb-8 flex items-center gap-2">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-violet-500 flex items-center justify-center">

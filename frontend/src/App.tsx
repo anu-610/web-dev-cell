@@ -20,8 +20,23 @@ function PublicLayout() {
         <Route path="/posts" element={<Posts />} />
         <Route path="/posts/:id" element={<PostDetail />} />
         <Route path="/posts/new" element={<WritePost />} />
+        <Route path="/posts/edit/:id" element={<WritePost />} />
       </Routes>
       <ThemeSwitcher />
+    </>
+  )
+}
+
+function AdminLayout() {
+  return (
+    <>
+      <NavBar />
+      <div className="pt-16 min-h-screen flex flex-col bg-void-950">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Dashboard />} />
+        </Routes>
+      </div>
     </>
   )
 }
@@ -38,8 +53,7 @@ function AppInner() {
   return (
     <Routes>
       <Route path="/*" element={<PublicLayout />} />
-      <Route path="/admin/login" element={<Login />} />
-      <Route path="/admin" element={<Dashboard />} />
+      <Route path="/admin/*" element={<AdminLayout />} />
     </Routes>
   )
 }
