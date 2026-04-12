@@ -113,13 +113,39 @@ async def list_my_posts(
     return result.scalars().all()
 
 
-# ── Public: Get single approved post ──────────────────────────────────────────
+# ── Public: Get single approved post (or any status for owner/admin) ──────────
 
 @router.get("/{post_id}", response_model=PostOut)
-async def get_post(post_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_post(request: Request, post_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
     post = await db.get(Post, post_id)
-    if not post or post.status != "approved":
+    if not post:
         raise HTTPException(status_code=404, detail="Post not found")
+
+    if post.status != "approved":
+        # Check if the requester is an admin or the author
+        can_view = False
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            try:
+                creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+                payload = await verify_supabase_jwt(creds)
+
+                # Admin check
+                role = (payload.get("app_metadata") or {}).get("role", "")
+                if role == "admin":
+                    can_view = True
+
+                # Owner check
+                user_id = payload.get("sub")
+                if user_id and post.author_id == user_id:
+                    can_view = True
+            except Exception:
+                pass
+
+        if not can_view:
+            raise HTTPException(status_code=404, detail="Post not found")
+
     return post
 
 
