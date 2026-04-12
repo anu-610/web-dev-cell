@@ -2,11 +2,12 @@ import uuid
 import os
 import shutil
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Request
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import require_admin
+from app.core.security import require_admin, verify_supabase_jwt
 from app.core.recaptcha import verify_recaptcha
 from app.db.session import get_db
 from app.models.models import Post
@@ -44,9 +45,23 @@ async def upload_thumbnail(file: UploadFile = File(...)):
 # ── Public: Submit a new post (requires valid reCAPTCHA) ──────────────────────
 
 @router.post("", response_model=PostOut, status_code=status.HTTP_201_CREATED)
-async def create_post(body: PostCreate, db: AsyncSession = Depends(get_db)):
-    """Any user can submit a post. It starts as 'pending' and requires admin approval."""
-    await verify_recaptcha(body.recaptcha_token)
+async def create_post(request: Request, body: PostCreate, db: AsyncSession = Depends(get_db)):
+    """Any user can submit a post. It starts as 'pending' unless an admin creates it."""
+    is_admin = False
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+        try:
+            creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+            payload = await verify_supabase_jwt(creds)
+            role = (payload.get("app_metadata") or {}).get("role", "")
+            if role == "admin":
+                is_admin = True
+        except Exception:
+            pass
+
+    if not is_admin:
+        await verify_recaptcha(body.recaptcha_token)
 
     post = Post(
         title=body.title.strip(),
@@ -54,7 +69,7 @@ async def create_post(body: PostCreate, db: AsyncSession = Depends(get_db)):
         author_name=body.author_name.strip(),
         category=body.category.strip(),
         thumbnail_url=body.thumbnail_url,
-        status="pending",
+        status="approved" if is_admin else "pending",
     )
     db.add(post)
     await db.commit()

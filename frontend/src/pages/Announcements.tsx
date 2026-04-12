@@ -77,7 +77,7 @@ export default function Announcements() {
                 >
                   <GlassCard glow={active ? 'cyan' : 'none'} className={`relative overflow-hidden ${active ? 'border-cyan-500/30' : 'opacity-80'}`}>
                     {active && (
-                      <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
+                      <div className="absolute -top-6 -left-6 w-1 h-[calc(100%+3rem)] bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]" />
                     )}
 
                     <div className="flex items-start justify-between gap-4 mb-3">
