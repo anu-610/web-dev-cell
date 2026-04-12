@@ -5,6 +5,7 @@ import Home from '@/pages/Home'
 import Posts from '@/pages/Posts'
 import PostDetail from '@/pages/PostDetail'
 import WritePost from '@/pages/WritePost'
+import Announcements from '@/pages/Announcements'
 import Login from '@/pages/admin/Login'
 import Dashboard from '@/pages/admin/Dashboard'
 import ThemeSwitcher from '@/components/hero/ThemeSwitcher'
@@ -21,6 +22,7 @@ function PublicLayout() {
         <Route path="/posts/:id" element={<PostDetail />} />
         <Route path="/posts/new" element={<WritePost />} />
         <Route path="/posts/edit/:id" element={<WritePost />} />
+        <Route path="/announcements" element={<Announcements />} />
       </Routes>
       <ThemeSwitcher />
     </>
@@ -41,6 +43,8 @@ function AdminLayout() {
   )
 }
 
+import AnnouncementPopup from '@/components/ui/AnnouncementPopup'
+
 function AppInner() {
   const { checkSession } = useAuthStore()
   const { fetchTheme } = useThemeStore()
@@ -51,10 +55,13 @@ function AppInner() {
   }, [checkSession, fetchTheme])
 
   return (
-    <Routes>
-      <Route path="/*" element={<PublicLayout />} />
-      <Route path="/admin/*" element={<AdminLayout />} />
-    </Routes>
+    <>
+      <AnnouncementPopup />
+      <Routes>
+        <Route path="/*" element={<PublicLayout />} />
+        <Route path="/admin/*" element={<AdminLayout />} />
+      </Routes>
+    </>
   )
 }
 

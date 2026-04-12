@@ -108,6 +108,32 @@ class PostStatusUpdate(BaseModel):
     status: str  # "approved" | "rejected"
 
 
+# ── Announcement ──────────────────────────────────────────────────────────────
+
+class AnnouncementBase(BaseModel):
+    title: str
+    message: str
+    link_url: str | None = None
+    end_date: datetime
+    is_active: bool = True
+
+class AnnouncementCreate(AnnouncementBase):
+    pass
+
+class AnnouncementUpdate(BaseModel):
+    title: str | None = None
+    message: str | None = None
+    link_url: str | None = None
+    end_date: datetime | None = None
+    is_active: bool | None = None
+
+class AnnouncementOut(AnnouncementBase):
+    id: uuid.UUID
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 # ── Site Settings ─────────────────────────────────────────────────────────────
 
 class ThemeOut(BaseModel):

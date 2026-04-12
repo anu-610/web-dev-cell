@@ -67,6 +67,14 @@ export default function NavBar() {
                 Blog
               </Link>
             </li>
+            <li>
+              <Link
+                to="/announcements"
+                className="text-slate-400 hover:text-cyan-400 text-sm font-medium tracking-wide transition-colors duration-200"
+              >
+                Alerts
+              </Link>
+            </li>
           </ul>
 
           {/* Mobile toggle */}
@@ -113,6 +121,19 @@ export default function NavBar() {
               className="text-2xl font-bold text-white hover:neon-cyan transition-all"
             >
               Blog
+            </Link>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: (SCROLL_NAV.length + 1) * 0.07 }}
+          >
+            <Link
+              to="/announcements"
+              onClick={() => setOpen(false)}
+              className="text-2xl font-bold text-white hover:neon-cyan transition-all"
+            >
+              Alerts
             </Link>
           </motion.div>
         </motion.div>
