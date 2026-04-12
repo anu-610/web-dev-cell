@@ -133,8 +133,8 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* ── RIGHT: macOS Terminal (desktop only) ── */}
-        <div className="hidden md:flex flex-1 items-center justify-end md:max-w-[46%]">
+        {/* ── RIGHT: macOS Terminal (desktop only, managed internally) ── */}
+        <div className="flex-1 flex items-center justify-center md:justify-end md:max-w-[48%]">
           <MacTerminal />
         </div>
       </div>

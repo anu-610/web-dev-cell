@@ -95,12 +95,27 @@ export default function MacTerminal() {
       initial={{ opacity: 0, x: 60, y: 20 }}
       animate={{ opacity: fading ? 0 : 1, x: 0, y: 0 }}
       transition={{ duration: 0.9, ease: 'easeOut' }}
-      className="hidden md:block w-full max-w-[440px] xl:max-w-[500px] pointer-events-none select-none flex-shrink-0"
-      style={{
-        transform: 'perspective(1000px) rotateY(-12deg) rotateX(5deg)',
-        filter: 'drop-shadow(-24px 24px 60px rgba(0,0,0,0.8))',
-      }}
+      className="hidden md:flex flex-shrink-0 items-center justify-center"
+      style={{ width: '100%', maxWidth: '580px' }}
     >
+      {/* 3D tilt wrapper — separate from motion so transform isn't cancelled by filter */}
+      <div
+        className="w-full pointer-events-none select-none"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: 'perspective(800px) rotateY(18deg) rotateX(-4deg)',
+          // Right side projects TOWARD viewer — rotateY positive = right edge closer
+          // Box shadows simulate depth: right/bottom edges cast darkness outward
+          boxShadow: `
+            20px 20px 60px rgba(0,0,0,0.7),
+            40px 40px 100px rgba(0,0,0,0.5),
+            -4px -4px 30px rgba(6,182,212,0.06),
+            0 0 80px rgba(6,182,212,0.04)
+          `,
+          borderRadius: '12px',
+        }}
+      >
+
       <div
         className="rounded-xl overflow-hidden"
         style={{
@@ -152,6 +167,7 @@ export default function MacTerminal() {
           {/* Blinking cursor */}
           <span className="inline-block w-[7px] h-[14px] bg-cyan-400/80 terminal-cursor align-middle mt-0.5" />
         </div>
+      </div>
       </div>
     </motion.div>
   )
