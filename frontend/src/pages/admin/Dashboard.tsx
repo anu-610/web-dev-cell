@@ -93,6 +93,27 @@ export default function AdminDashboard() {
     }
   }
 
+  // Timezone-safe local datetime string for the HTML input
+  const toLocalDatetimeLocal = (isoString?: string) => {
+    if (!isoString) return ''
+    const d = new Date(isoString)
+    if (isNaN(d.getTime())) return ''
+    const tzOffset = d.getTimezoneOffset() * 60000
+    return new Date(d.getTime() - tzOffset).toISOString().substring(0, 16)
+  }
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    if (!val) {
+      setEditForm({ ...editForm, end_date: null })
+    } else {
+      const d = new Date(val)
+      if (!isNaN(d.getTime())) {
+        setEditForm({ ...editForm, end_date: d.toISOString() })
+      }
+    }
+  }
+
   const handleLogout = async () => {
     await logout()
     navigate('/admin/login')
@@ -414,7 +435,7 @@ export default function AdminDashboard() {
                         <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.message || ''} onChange={e => setEditForm({...editForm, message: e.target.value})} placeholder="Message" />
                         <input className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.link_url || ''} onChange={e => setEditForm({...editForm, link_url: e.target.value})} placeholder="Link URL (optional)" />
                         <div className="flex flex-col gap-2">
-                          <input type="datetime-local" className="bg-void-800 p-2 rounded text-sm text-white" value={editForm.end_date?.substring(0, 16) || ''} onChange={e => setEditForm({...editForm, end_date: new Date(e.target.value).toISOString()})} />
+                          <input type="datetime-local" className="bg-void-800 p-2 rounded text-sm text-white" value={toLocalDatetimeLocal(editForm.end_date)} onChange={handleDateChange} />
                           <label className="flex items-center gap-2 text-sm text-slate-400">
                             <input type="checkbox" checked={editForm.is_active || false} onChange={e => setEditForm({...editForm, is_active: e.target.checked})} className="rounded bg-void-800 border-void-700" />
                             Active Popup
