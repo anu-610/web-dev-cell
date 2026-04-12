@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { Terminal } from 'lucide-react'
+import { Terminal, LogOut } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuthStore } from '@/stores/auth'
 
 const SCROLL_NAV = [
   { label: 'Projects', id: 'projects' },
@@ -14,6 +15,7 @@ export default function NavBar() {
   const [open, setOpen] = useState(false)
   const location = useLocation()
   const isHome = location.pathname === '/'
+  const { token, logout } = useAuthStore()
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40)
@@ -75,6 +77,20 @@ export default function NavBar() {
                 Alerts
               </Link>
             </li>
+            {token && (
+              <li>
+                <button
+                  onClick={async () => {
+                    await logout()
+                    window.location.reload() // Force reload to clear all states cleanly
+                  }}
+                  className="flex items-center gap-1.5 text-red-400/80 hover:text-red-400 text-sm font-medium tracking-wide transition-colors duration-200 ml-4"
+                >
+                  <LogOut size={14} />
+                  Sign Out
+                </button>
+              </li>
+            )}
           </ul>
 
           {/* Mobile toggle */}
@@ -136,6 +152,25 @@ export default function NavBar() {
               Alerts
             </Link>
           </motion.div>
+          {token && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: (SCROLL_NAV.length + 2) * 0.07 }}
+            >
+              <button
+                onClick={async () => {
+                  setOpen(false)
+                  await logout()
+                  window.location.reload()
+                }}
+                className="flex items-center gap-2 text-2xl font-bold text-red-400 hover:text-red-300 transition-all mt-4"
+              >
+                <LogOut size={24} />
+                Sign Out
+              </button>
+            </motion.div>
+          )}
         </motion.div>
       )}
     </>
