@@ -209,7 +209,7 @@ function WritePostForm() {
       }
 
       if (isEditMode) {
-        // Admin Edit Post
+        // Admin or User Edit Post
         await apiFetch(`/posts/${id}`, {
           method: 'PATCH',
           data: {
@@ -236,7 +236,7 @@ function WritePostForm() {
       }
 
       setSuccess(true)
-      setTimeout(() => navigate(isEditMode ? '/admin' : '/posts'), 3000)
+      setTimeout(() => navigate(isAdmin ? '/admin' : '/posts'), 3000)
 
     } catch (err: any) {
       setError(err.message || 'Failed to save post.')
