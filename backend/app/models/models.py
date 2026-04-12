@@ -80,6 +80,17 @@ class Project(Base):
     )
 
 
+class SiteSettings(Base):
+    """Singleton row (id=1) storing global site configuration."""
+
+    __tablename__ = "site_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    hero_theme: Mapped[str] = mapped_column(
+        String(32), nullable=False, server_default="aurora"
+    )
+
+
 class ProjectMember(Base):
     """Association table linking members to projects."""
 

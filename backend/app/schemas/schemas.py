@@ -73,3 +73,15 @@ class ProjectOut(ProjectBase):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# ── Site Settings ─────────────────────────────────────────────────────────────
+
+class ThemeOut(BaseModel):
+    theme: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ThemeUpdate(BaseModel):
+    theme: str
