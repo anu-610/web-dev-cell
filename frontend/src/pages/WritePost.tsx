@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { GoogleReCaptchaProvider, useGoogleReCaptcha } from 'react-google-recaptcha-v3'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
@@ -8,22 +8,28 @@ import NeonButton from '@/components/ui/NeonButton'
 import GlassCard from '@/components/ui/GlassCard'
 import SectionTitle from '@/components/ui/SectionTitle'
 import { apiFetch } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth'
 
 const CATEGORIES = ["vulnerability", "new-feature", "tutorial", "news", "announcement", "other"]
 
 function WritePostForm() {
   const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
+  const isEditMode = !!id
   const { executeRecaptcha } = useGoogleReCaptcha()
+  const { token, isAdmin } = useAuthStore()
 
   const [title, setTitle] = useState('')
   const [authorName, setAuthorName] = useState('')
   const [category, setCategory] = useState(CATEGORIES[0])
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null)
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('')
+  const [originalThumbnailUrl, setOriginalThumbnailUrl] = useState<string>('')
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [initialLoad, setInitialLoad] = useState(isEditMode)
 
   const editorRef = useRef<HTMLDivElement>(null)
   const quillRef = useRef<Quill | null>(null)
@@ -47,6 +53,30 @@ function WritePostForm() {
     }
   }, [])
 
+  useEffect(() => {
+    if (isEditMode) {
+      apiFetch<any>(`/posts/${id}`).then(post => {
+        setTitle(post.title)
+        setAuthorName(post.author_name)
+        setCategory(post.category)
+        setOriginalThumbnailUrl(post.thumbnail_url)
+
+        const thumbUrl = post.thumbnail_url.startsWith('http')
+          ? post.thumbnail_url
+          : `${import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}${post.thumbnail_url}`
+        setThumbnailPreview(thumbUrl)
+
+        if (quillRef.current) {
+          quillRef.current.root.innerHTML = post.content
+        }
+        setInitialLoad(false)
+      }).catch(err => {
+        setError("Failed to load post for editing.")
+        setInitialLoad(false)
+      })
+    }
+  }, [id, isEditMode])
+
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
@@ -64,7 +94,7 @@ function WritePostForm() {
       return
     }
 
-    if (!thumbnailFile) {
+    if (!thumbnailFile && !isEditMode) {
       setError("A thumbnail image is required.")
       return
     }
@@ -75,7 +105,10 @@ function WritePostForm() {
       return
     }
 
-    if (!executeRecaptcha) {
+    // Only non-admins creating new posts require reCAPTCHA
+    const requiresRecaptcha = !isEditMode && (!token || !isAdmin)
+
+    if (requiresRecaptcha && !executeRecaptcha) {
       setError("reCAPTCHA is not loaded yet. Please try again.")
       return
     }
@@ -84,43 +117,67 @@ function WritePostForm() {
     setError(null)
 
     try {
-      // 1. Get reCAPTCHA token
-      const token = await executeRecaptcha('submit_post')
+      let recaptchaToken = ''
+      if (requiresRecaptcha && executeRecaptcha) {
+        recaptchaToken = await executeRecaptcha('submit_post')
+      }
 
-      // 2. Upload thumbnail
-      const formData = new FormData()
-      formData.append('file', thumbnailFile)
+      let thumbnail_url = originalThumbnailUrl
 
-      const apiBaseUrl = import.meta.env.VITE_API_URL || '/api/v1'
-      const uploadRes = await fetch(`${apiBaseUrl}/posts/upload-thumbnail`, {
-        method: 'POST',
-        body: formData
-      })
+      // Upload thumbnail if a new one was selected
+      if (thumbnailFile) {
+        const formData = new FormData()
+        formData.append('file', thumbnailFile)
 
-      if (!uploadRes.ok) throw new Error("Failed to upload thumbnail.")
-      const uploadData = await uploadRes.json()
-      const thumbnail_url = uploadData.url
+        const apiBaseUrl = import.meta.env.VITE_API_URL || '/api/v1'
+        const uploadRes = await fetch(`${apiBaseUrl}/posts/upload-thumbnail`, {
+          method: 'POST',
+          body: formData
+        })
 
-      // 3. Submit post
-      await apiFetch('/posts', {
-        method: 'POST',
-        data: {
-          title,
-          content,
-          author_name: authorName,
-          category,
-          thumbnail_url,
-          recaptcha_token: token
-        }
-      })
+        if (!uploadRes.ok) throw new Error("Failed to upload thumbnail.")
+        const uploadData = await uploadRes.json()
+        thumbnail_url = uploadData.url
+      }
+
+      if (isEditMode) {
+        // Admin Edit Post
+        await apiFetch(`/posts/${id}`, {
+          method: 'PATCH',
+          data: {
+            title,
+            content,
+            author_name: authorName,
+            category,
+            thumbnail_url
+          }
+        })
+      } else {
+        // Submit New Post
+        await apiFetch('/posts', {
+          method: 'POST',
+          data: {
+            title,
+            content,
+            author_name: authorName,
+            category,
+            thumbnail_url,
+            recaptcha_token: recaptchaToken || 'admin_bypass'
+          }
+        })
+      }
 
       setSuccess(true)
-      setTimeout(() => navigate('/posts'), 3000)
+      setTimeout(() => navigate(isEditMode ? '/admin' : '/posts'), 3000)
 
     } catch (err: any) {
-      setError(err.message || 'Failed to submit post.')
+      setError(err.message || 'Failed to save post.')
       setSubmitting(false)
     }
+  }
+
+  if (initialLoad) {
+    return <div className="text-center p-12 text-cyan-400">Loading post data...</div>
   }
 
   if (success) {
@@ -128,10 +185,12 @@ function WritePostForm() {
       <GlassCard className="max-w-2xl mx-auto p-12 text-center flex flex-col items-center gap-6">
         <CheckCircle2 size={64} className="text-emerald-400" />
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Post Submitted!</h2>
-          <p className="text-slate-400">Your post is now pending admin approval. It will appear on the blog once approved.</p>
+          <h2 className="text-2xl font-bold text-white mb-2">{isEditMode ? 'Post Updated!' : 'Post Submitted!'}</h2>
+          <p className="text-slate-400">
+            {isEditMode ? 'The post has been successfully updated.' : 'Your post is now pending admin approval.'}
+          </p>
         </div>
-        <p className="text-sm text-slate-500">Redirecting to blog...</p>
+        <p className="text-sm text-slate-500">Redirecting...</p>
       </GlassCard>
     )
   }
@@ -229,11 +288,13 @@ function WritePostForm() {
             color="cyan"
             disabled={submitting}
           >
-            {submitting ? 'Submitting...' : 'Submit for Review'}
+            {submitting ? 'Saving...' : (isEditMode ? 'Update Post' : 'Submit for Review')}
           </NeonButton>
-          <p className="text-xs text-center text-slate-500 mt-4">
-            This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" className="underline">Privacy Policy</a> and <a href="https://policies.google.com/terms" className="underline">Terms of Service</a> apply.
-          </p>
+          {!isEditMode && (!token || !isAdmin) && (
+            <p className="text-xs text-center text-slate-500 mt-4">
+              This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" className="underline">Privacy Policy</a> and <a href="https://policies.google.com/terms" className="underline">Terms of Service</a> apply.
+            </p>
+          )}
         </div>
       </div>
     </form>
