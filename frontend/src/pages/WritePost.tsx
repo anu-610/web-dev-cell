@@ -60,11 +60,7 @@ function WritePostForm() {
         setAuthorName(post.author_name)
         setCategory(post.category)
         setOriginalThumbnailUrl(post.thumbnail_url)
-
-        const thumbUrl = post.thumbnail_url.startsWith('http')
-          ? post.thumbnail_url
-          : `${import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}${post.thumbnail_url}`
-        setThumbnailPreview(thumbUrl)
+        setThumbnailPreview(post.thumbnail_url)
 
         if (quillRef.current) {
           quillRef.current.root.innerHTML = post.content
@@ -130,8 +126,7 @@ function WritePostForm() {
         const formData = new FormData()
         formData.append('file', thumbnailFile)
 
-        const apiBaseUrl = import.meta.env.VITE_API_URL || '/api/v1'
-        const uploadRes = await fetch(`${apiBaseUrl}/posts/upload-thumbnail`, {
+        const uploadRes = await fetch('/api/v1/posts/upload-thumbnail', {
           method: 'POST',
           body: formData
         })

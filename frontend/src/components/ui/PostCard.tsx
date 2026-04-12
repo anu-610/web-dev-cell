@@ -30,17 +30,12 @@ export default function PostCard({ post }: Props) {
 
   const categoryColor = CATEGORY_COLORS[post.category] || CATEGORY_COLORS.other
 
-  // Construct thumbnail URL (handling relative URLs from backend)
-  const thumbUrl = post.thumbnail_url.startsWith('http')
-    ? post.thumbnail_url
-    : `${import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}${post.thumbnail_url}`
-
   return (
     <Link to={`/posts/${post.id}`}>
       <GlassCard glow="cyan" className="h-full flex flex-col p-0 overflow-hidden group">
         <div className="relative h-48 w-full overflow-hidden border-b border-white/5 bg-void-900">
           <img
-            src={thumbUrl}
+            src={post.thumbnail_url}
             alt={post.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=No+Image' }}

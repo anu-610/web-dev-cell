@@ -22,8 +22,7 @@ const item: Variants = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0
 
 function Avatar({ name, url }: { name: string, url?: string }) {
   if (url) {
-    const fullUrl = url.startsWith('http') ? url : `${import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}${url}`
-    return <img src={fullUrl} alt={name} className="w-full h-full object-cover" />
+    return <img src={url} alt={name} className="w-full h-full object-cover" />
   }
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
   const hue = (name.charCodeAt(0) * 7) % 360

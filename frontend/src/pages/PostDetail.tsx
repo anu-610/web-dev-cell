@@ -64,10 +64,6 @@ export default function PostDetail() {
   // Sanitize Quill HTML content
   const cleanHtml = DOMPurify.sanitize(post.content)
 
-  const thumbUrl = post.thumbnail_url.startsWith('http')
-    ? post.thumbnail_url
-    : `${import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}${post.thumbnail_url}`
-
   return (
     <div className="min-h-screen bg-void-950 pt-24 pb-20">
       <div className="max-w-4xl mx-auto px-6">
@@ -99,7 +95,7 @@ export default function PostDetail() {
 
         <div className="relative w-full h-[400px] md:h-[500px] rounded-2xl overflow-hidden mb-12 border border-white/10 shadow-2xl">
           <img
-            src={thumbUrl}
+            src={post.thumbnail_url}
             alt={post.title}
             className="w-full h-full object-cover"
             onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/1200x600?text=No+Image' }}

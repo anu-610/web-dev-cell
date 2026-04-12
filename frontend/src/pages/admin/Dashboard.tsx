@@ -79,7 +79,7 @@ export default function AdminDashboard() {
     try {
       const formData = new FormData()
       formData.append('file', e.target.files[0])
-      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api/v1'}/posts/upload-thumbnail`, {
+      const res = await fetch('/api/v1/posts/upload-thumbnail', {
         method: 'POST',
         body: formData
       })

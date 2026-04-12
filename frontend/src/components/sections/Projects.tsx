@@ -40,7 +40,7 @@ function ProjectCard({ p }: { p: Project }) {
         <div className="w-full h-48 rounded-xl mb-5 bg-gradient-to-br from-void-800 to-void-700 flex items-center justify-center overflow-hidden shrink-0">
           {p.thumbnail_url ? (
             <img
-              src={p.thumbnail_url.startsWith('http') ? p.thumbnail_url : `${import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8000'}${p.thumbnail_url}`}
+              src={p.thumbnail_url}
               alt={p.title}
               className="w-full h-full object-cover"
               onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=No+Image' }}
