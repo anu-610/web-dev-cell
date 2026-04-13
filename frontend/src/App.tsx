@@ -55,12 +55,16 @@ function AppInner() {
   }, [checkSession, fetchTheme])
 
   useEffect(() => {
-    // Supabase sometimes strips the route on OAuth failures and dumps the user on the root '/'
-    // If we detect an error on the homepage, forward them to the posts page so the UI can catch it
+    // Supabase sometimes strips the route on OAuth callbacks and dumps the user on the root '/'
+    // If we detect an error or a successful access_token on the homepage, forward them to the posts page 
     if (window.location.pathname === '/') {
       const searchStr = window.location.search
       const hashStr = window.location.hash
-      if (searchStr.includes('error=') || hashStr.includes('error=')) {
+      
+      const hasError = searchStr.includes('error=') || hashStr.includes('error=')
+      const hasToken = hashStr.includes('access_token=')
+      
+      if (hasError || hasToken) {
         window.location.href = `/posts/new${searchStr}${hashStr}`
       }
     }
