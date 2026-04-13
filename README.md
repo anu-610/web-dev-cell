@@ -10,6 +10,22 @@ live link: https://webdevcell.tech
 
 ---
 
+## ⚡ Local Setup & Running
+
+To run this project locally on your machine, you must configure the environment variables and launch the Docker containers:
+
+1. **Configure Environment Variables:**
+   - Copy the `.env.example` file in the root directory and rename it to `.env`. Fill in the required database and Supabase credentials.
+   - Go into the `frontend` folder, copy `frontend/.env.example`, rename it to `frontend/.env`, and add your VITE API keys.
+
+2. **Launch with Docker:**
+   Run the following command from the root directory to build and start the entire stack (Frontend, Backend, and Database):
+   ```bash
+   docker compose up --build
+   ```
+
+---
+
 ## Core Features
 
 I focused heavily on creating both a good public-facing UI and a robust administrative backend. Here are the main features built into this application:
