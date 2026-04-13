@@ -28,7 +28,13 @@ export default function AdminDashboard() {
   const [projects, setProjects] = useState<Project[]>([])
   const [posts, setPosts] = useState<any[]>([])
   const [announcements, setAnnouncements] = useState<any[]>([])
-  const [siteSettings, setSiteSettings] = useState<any>({ hero_theme: 'aurora', show_github_stats: false, github_repo: 'kamandprompt/dev-cell' })
+  const defaultStats = [
+    { value: '20+', label: 'Projects Shipped' },
+    { value: '30+', label: 'Active Members' },
+    { value: '3+',  label: 'Years Running' },
+    { value: '∞',   label: 'Coffee Consumed' },
+  ]
+  const [siteSettings, setSiteSettings] = useState<any>({ hero_theme: 'aurora', show_github_stats: false, github_repo: 'kamandprompt/dev-cell', hero_stats: defaultStats })
   const [isFetching, setIsFetching] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
 
@@ -277,6 +283,55 @@ export default function AdminDashboard() {
                 )}
               </div>
             </GlassCard>
+
+            <h2 className="text-xl font-bold mb-4 mt-8">Hero Statistics</h2>
+            <p className="text-sm text-slate-400 mb-6">Customize the 4 statistics displayed on the homepage hero section.</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mb-6">
+              {(siteSettings.hero_stats || defaultStats).map((stat: any, index: number) => (
+                <GlassCard key={index} className="p-4 flex flex-col gap-3 border-white/5">
+                  <div className="text-sm font-bold text-slate-300">Stat #{index + 1}</div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1">Value (e.g. 20+)</label>
+                    <input 
+                      type="text" 
+                      value={stat.value} 
+                      onChange={(e) => {
+                        const newStats = [...(siteSettings.hero_stats || defaultStats)]
+                        newStats[index] = { ...newStats[index], value: e.target.value }
+                        setSiteSettings({ ...siteSettings, hero_stats: newStats })
+                      }}
+                      className="w-full bg-void-900 border border-white/10 rounded px-3 py-1.5 text-white text-sm focus:border-cyan-500/50 outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-500 mb-1">Label (e.g. Projects Shipped)</label>
+                    <input 
+                      type="text" 
+                      value={stat.label} 
+                      onChange={(e) => {
+                        const newStats = [...(siteSettings.hero_stats || defaultStats)]
+                        newStats[index] = { ...newStats[index], label: e.target.value }
+                        setSiteSettings({ ...siteSettings, hero_stats: newStats })
+                      }}
+                      className="w-full bg-void-900 border border-white/10 rounded px-3 py-1.5 text-white text-sm focus:border-cyan-500/50 outline-none transition-colors"
+                    />
+                  </div>
+                </GlassCard>
+              ))}
+            </div>
+            <NeonButton 
+              size="sm" 
+              className="mb-12"
+              onClick={async () => {
+                await apiFetch('/settings/site', { method: 'PATCH', data: { hero_stats: siteSettings.hero_stats || defaultStats } })
+                alert("Hero stats updated live!")
+              }}
+            >
+              Save Hero Stats
+            </NeonButton>
+
+            <div className="w-full h-px bg-white/10 mb-8" />
 
             <h2 className="text-xl font-bold mb-4">Hero Theme</h2>
             <p className="text-slate-400 mb-8 text-sm">

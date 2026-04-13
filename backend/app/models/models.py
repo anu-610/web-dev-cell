@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import String, Text, Boolean, DateTime, Integer, ForeignKey, func, Enum as SAEnum
+from sqlalchemy import String, Text, Boolean, DateTime, Integer, ForeignKey, func, Enum as SAEnum, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -93,6 +93,7 @@ class SiteSettings(Base):
     )
     show_github_stats: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default=func.false())
     github_repo: Mapped[str | None] = mapped_column(String(255), nullable=True, server_default="kamandprompt/dev-cell")
+    hero_stats: Mapped[list | None] = mapped_column(JSON, nullable=True, server_default=None)
 
 
 class Post(Base):

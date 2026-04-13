@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronDown, ArrowRight, Globe } from 'lucide-react'
 import NeonButton from '@/components/ui/NeonButton'
+import { apiFetch } from '@/lib/api'
 import HeroAurora from '@/components/hero/HeroAurora'
 import HeroMesh, { useTypewriter } from '@/components/hero/HeroMesh'
 import HeroCircuit from '@/components/hero/HeroCircuit'
@@ -35,6 +37,16 @@ function MeshTagline() {
 export default function Hero() {
   const { heroTheme } = useThemeStore()
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+
+  const [stats, setStats] = useState(STATS)
+
+  useEffect(() => {
+    apiFetch<any>('/settings/site').then(res => {
+      if (res && res.hero_stats && res.hero_stats.length === 4) {
+        setStats(res.hero_stats)
+      }
+    }).catch(err => console.error("Failed to load hero stats", err))
+  }, [])
 
   return (
     <section
@@ -119,7 +131,7 @@ export default function Hero() {
             transition={{ duration: 1, delay: 1.2 }}
             className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-x-8 gap-y-5"
           >
-            {STATS.map((s, i) => (
+            {stats.map((s: any, i: number) => (
               <motion.div
                 key={s.label}
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}

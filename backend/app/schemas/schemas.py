@@ -150,6 +150,7 @@ class SiteSettingsOut(BaseModel):
     hero_theme: str
     show_github_stats: bool
     github_repo: str | None
+    hero_stats: list | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -157,6 +158,7 @@ class SiteSettingsUpdate(BaseModel):
     hero_theme: str | None = None
     show_github_stats: bool | None = None
     github_repo: str | None = None
+    hero_stats: list | None = None
 
 class ThemeUpdate(BaseModel):
     theme: str
