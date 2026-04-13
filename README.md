@@ -6,6 +6,8 @@ I designed this project basically focusing on production grade features and secu
 It features a complete modern tech stack, bridging a React/Vite front-end with a fast Python/FastAPI back-end and PostgreSQL database.
 Used cloudflare, google OAuth, reCaptcha for preventing attacks from bots
 
+live link: https://webdevcell.tech
+
 ---
 
 ## Core Features

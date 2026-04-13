@@ -54,6 +54,18 @@ function AppInner() {
     fetchTheme() // pull the DB-authoritative theme on every page load
   }, [checkSession, fetchTheme])
 
+  useEffect(() => {
+    // Supabase sometimes strips the route on OAuth failures and dumps the user on the root '/'
+    // If we detect an error on the homepage, forward them to the posts page so the UI can catch it
+    if (window.location.pathname === '/') {
+      const searchStr = window.location.search
+      const hashStr = window.location.hash
+      if (searchStr.includes('error=') || hashStr.includes('error=')) {
+        window.location.href = `/posts/new${searchStr}${hashStr}`
+      }
+    }
+  }, [])
+
   return (
     <>
       <CustomCursor />
