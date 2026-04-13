@@ -59,19 +59,22 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     setIsFetching(true)
     try {
-      const [m, p, po, ann, site] = await Promise.all([
+      const results = await Promise.allSettled([
         apiFetch<TeamMember[]>('/members'),
         apiFetch<Project[]>('/projects'),
         apiFetch<any[]>('/posts/admin/all'),
         apiFetch<any[]>('/announcements'),
         apiFetch<any>('/settings/site')
       ])
-      setMembers(m)
-      setProjects(p)
-      setPosts(po)
-      setAnnouncements(ann)
-      setSiteSettings(site)
-      setHeroTheme(site.hero_theme)
+
+      if (results[0].status === 'fulfilled') setMembers(results[0].value)
+      if (results[1].status === 'fulfilled') setProjects(results[1].value)
+      if (results[2].status === 'fulfilled') setPosts(results[2].value)
+      if (results[3].status === 'fulfilled') setAnnouncements(results[3].value)
+      if (results[4].status === 'fulfilled') {
+        setSiteSettings(results[4].value)
+        setHeroTheme(results[4].value.hero_theme)
+      }
     } catch (e) {
       console.error(e)
     } finally {
