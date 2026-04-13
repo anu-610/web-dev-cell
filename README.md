@@ -1,26 +1,24 @@
-# Web Dev Cell — Official Website
+# Web Dev Cell Official Website
 
-I'm **Anuraj KTK** (Team **TensorV3**)
+I'm Anuraj KTK (Team TensorV3).
 
-I designed this project basically focusing on production grade features and security.
-It features a complete modern tech stack, bridging a React/Vite front-end with a fast Python/FastAPI back-end and PostgreSQL database.
-Used cloudflare, google OAuth, reCaptcha for preventing attacks from bots
+I designed this project focusing on basic production features and security. It uses a modern tech stack with a React/Vite front-end, a Python/FastAPI back-end, and a PostgreSQL database. It also uses Cloudflare, Google OAuth, and reCAPTCHA to prevent bot attacks.
 
-live link: https://webdevcell.tech
+Live link: https://webdevcell.tech
 
 ---
 
-## ⚡ Local Setup & Running
+## Local Setup
 
-To run this project locally on your machine, you must configure the environment variables and launch the Docker containers:
+To run this project locally, configure the environment variables and run the Docker containers:
 
-1. **Configure Environment Variables:**
-   - Copy the `.env.example` file in the root directory and rename it to `.env`. Fill in the required database and Supabase credentials.
-   - Go into the `frontend` folder, copy `frontend/.env.example`, rename it to `frontend/.env`, and add your VITE API keys.
+1. Configure Environment Variables:
+   - Copy the .env.example file in the root directory and rename it to .env. Fill in the database and Supabase credentials.
+   - Go into the frontend folder, copy frontend/.env.example, rename it to frontend/.env, and add your VITE API keys.
 
-2. **Launch with Docker:**
-   Run the following command from the root directory to build and start the entire stack (Frontend, Backend, and Database):
-   ```bash
+2. Launch with Docker:
+   Run the following command from the root directory to build and start the application:
+   ```
    docker compose up --build
    ```
 
@@ -28,43 +26,39 @@ To run this project locally on your machine, you must configure the environment 
 
 ## Core Features
 
-I focused heavily on creating both a good public-facing UI and a robust administrative backend. Here are the main features built into this application:
+I built a public website and an administrative backend. Here are the main features:
 
-* **Interactive Hacker Aesthetic:** A fully responsive, pure-CSS interactive 3D Mac terminal hero section, integrated with a custom magnetic cursor and "glasscard" spotlight hover effects.
-* **Community Engineering Blog:** A complete blog system with a rich-text Quill editor. Students can authenticate securely, write posts, manage them via a "My Posts" tab, and edit them seamlessly.
-* **Secure Admin CMS:** A dedicated, hidden `/admin` dashboard protected by invisible Google reCAPTCHA v3.
-* **Robust Moderation Pipeline:** Student posts go into a "Pending" queue where admins can approve, edit, or reject them. (If rejected, admins can attach a specific rejection reason for the author to review).
-* **Global Theme Management:** Admins can change the entire website's visual theme (like switching from Dark Hacker to a vibrant preset) globally with one click from the dashboard. This syncs via the FastAPI backend to instantly update everyone's UI.
-* **Live Community Notifications:** A beautiful notification and announcements system so users never miss a hackathon or club update.
-* **GitHub & Member Integration:** Live pulls of GitHub stats alongside dynamically uploaded project thumbnails and team avatars.
-* **Strict OAuth Security:** Blog posting is exclusively restricted to verified students. The system strictly blocks arbitrary Gmail accounts and only accepts `@students.iitmandi.ac.in` email addresses via Supabase OAuth.
+* Interactive UI: A CSS 3D Mac terminal hero section with a custom cursor and hover effects.
+* Community Blog: A blog system where students can write posts, manage them via a "My Posts" tab, and edit them.
+* Admin Panel: A hidden admin dashboard protected by Google reCAPTCHA.
+* Moderation System: Student posts go into a pending queue where admins can approve, edit, or reject them with a reason.
+* Theme Management: Admins can change the website's theme globally from the dashboard.
+* Notifications: A notification system for announcements and updates.
+* GitHub Integration: Shows live GitHub stats and dynamically loaded project thumbnails and avatars.
+* Security: Blog posting is restricted to verified students. It only accepts @students.iitmandi.ac.in emails via Supabase.
 
 ---
 
-## Top 3 Technical Challenges I Faced
+## Top 3 Technical Challenges
 
+1. Datetime Timezone Bug
+   The Problem: The admin scheduler used a datetime-local input. When the time was changed, the input cursor jumped and the time shifted by 5.5 hours due to timezone differences between the frontend and the database.
+   The Fix: I updated the component to format ISO strings strictly to local time before sending them to the backend. This fixed the input jump and saved the correct time.
 
+2. CSS 3D Terminal Design
+   The Problem: I initially tried Three.js for a 3D effect but it was too heavy. I built a Mac Terminal using pure CSS 3D transforms instead. But making the perspective look natural without overlapping text on smaller screens was difficult.
+   The Fix: I adjusted the perspective and rotations, and used flex layouts to prevent the terminal from overlapping the text on tablet screens.
 
-1. **The Infamous Datetime-Local Timezone Bug**
-   * *The Problem:* Building the admin scheduler required using HTML5 `<input type="datetime-local">`. However, every time an admin changed the time, the input cursor would violently jump, and React state was silently shifting the times by 5.5 hours due to local vs. UTC timezone collisions between the frontend state and the PostgreSQL database.
-   * *The Fix:* I rewrote (as u know gemini) the controlled component handlers to explicitly format ISO strings strictly into local boundaries before syncing to the backend, completely stabilizing the cursor and ensuring accurate time records.
-
-2. **Pure-CSS 3D (The Terminal)**
-   * *The Problem:* I originally tried using Three.js for a 3D effect, but it was too heavy. I pivoted to building a Mac Terminal out of pure CSS 3D transforms. However, keeping the perspective looking natural (projecting outward rather than caving inward) while ensuring it didn't overlap the text on tablet screens required intense breakpoint math. 
-   * *The Fix:* I completely overhauled the `perspective-origin` and Z-axis rotations, and implemented rigid flex stacking for `md` breakpoints to prevent the terminal from crashing into the hero text on smaller devices.
-
-3. **Docker Nginx Proxying & Ephemeral Uploads**
-   * *The Problem:* In production, Nginx was completely hijacking requests for `/uploads/image.png` because its static-file regex thought the image lived in the React build folder instead of proxying it to the Python backend API! Plus, every time I rebuilt the Docker container, all admin-uploaded images were instantly deleted.
-   * *The Fix:* I manually forced a `^~` modifier in `nginx.conf` so the `/uploads/` prefix took absolute priority over the static regex, successfully routing images to FastAPI. I then configured a dedicated Docker Named Volume so the database and uploaded images persisted correctly across rebuilds and deployments.
+3. Docker and Nginx Upload Issues
+   The Problem: In production, Nginx blocked requests for uploaded images. Also, every time the Docker container restarted, all uploaded images were deleted.
+   The Fix: I updated the nginx configuration to correctly route image requests to the backend. I also added a Docker volume so the database and uploaded images are saved permanently.
 
 ---
 
 ## Tech Stack
-* **Frontend:** React, TypeScript, Vite, Tailwind CSS, Zustand, React Router, Quill.
-* **Backend:** Python, FastAPI, SQLAlchemy, Alembic (Migrations).
-* **Database & Auth:** PostgreSQL, Supabase Auth.
-* **Infrastructure:** Docker, Docker Compose, Nginx.
+* Frontend: React, TypeScript, Vite, Tailwind CSS, Zustand, React Router, Quill
+* Backend: Python, FastAPI, SQLAlchemy, Alembic
+* Database & Auth: PostgreSQL, Supabase Auth
+* Infrastructure: Docker, Docker Compose, Nginx
 
----
-
-*Built by Anuraj KTK (Team TensorV3).*
+Built by Anuraj KTK (Team TensorV3).
