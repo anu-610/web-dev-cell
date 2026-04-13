@@ -27,6 +27,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
     # Removed volume mounting to ensure it uses the baked Docker container code
     command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
 
@@ -40,3 +42,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:
